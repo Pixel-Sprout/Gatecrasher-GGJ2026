@@ -25,6 +25,7 @@ export const routes: Routes = [
   {
     path: 'scoring',
     component: ScoringComponent
-  }
-  
+  },
+  { path: 'signalr-test', loadComponent: () => import('./signalr-test/signalr-test.component').then(m => m.SignalrTestComponent) },
+  //{ path: '', pathMatch: 'full', redirectTo: 'signalr-test' }
 ];

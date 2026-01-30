@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalR Smoke Test</title>
+</head>
+<body>
+  <h1>SignalR EchoHub Smoke Test</h1>
+  <label>Username: <input id="username" value="guest"/></label>
+  <button id="connect">Connect</button>
+  <button id="send">Send Message</button>
+  <pre id="log" style="height:300px;overflow:auto;border:1px solid #ccc;padding:8px"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@7.0.8/dist/browser/signalr.min.js"></script>
+  <script>
+    const log = msg => {
+      const p = document.getElementById('log');
+      p.textContent += msg + '\n';
+      p.scrollTop = p.scrollHeight;
+    }
+
+    let connection;
+
+    document.getElementById('connect').addEventListener('click', async () => {
+      const username = document.getElementById('username').value || 'guest';
+      const url = prompt('Podaj URL do serwera (np. http://localhost:5000):', 'http://localhost:5000');
+      if (!url) return;
+      const hubUrl = url.replace(/\/$/, '') + '/hubs/echo?username=' + encodeURIComponent(username);
+
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl)
+        .withAutomaticReconnect()
+        .build();
+
+      connection.on('UserJoined', (connectionId, name) => log(`UserJoined: ${connectionId} ${name}`));
+      connection.on('UserLeft', (connectionId, name) => log(`UserLeft: ${connectionId} ${name}`));
+      connection.on('ReceiveMessage', (message) => log(`ReceiveMessage: ${message}`));
+
+      try {
+        await connection.start();
+        log('Połączono z ' + hubUrl);
+      } catch (err) {
+        log('Błąd połączenia: ' + err);
+      }
+    });
+
+    document.getElementById('send').addEventListener('click', async () => {
+      if (!connection) { log('Brak połączenia'); return; }
+      const text = prompt('Treść wiadomości', 'hej');
+      if (!text) return;
+      try {
+        await connection.invoke('SendMessage', text);
+        log('Wysłano: ' + text + ' (odpowiedź po 15s)');
+      } catch (err) {
+        log('Błąd wysyłania: ' + err);
+      }
+    });
+  </script>
+</body>
+</html>

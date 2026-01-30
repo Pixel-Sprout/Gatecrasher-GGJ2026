@@ -7,6 +7,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Dodaj SignalR
+builder.Services.AddSignalR();
+
+// Prosta polityka CORS (przykład dla Angular dev servera)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -20,6 +35,11 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseCors("CorsPolicy");
+
 app.MapControllers();
+
+// Mapuj hub Echo
+app.MapHub<Masquerade_GGJ_2026.Hubs.EchoHub>("/hubs/echo");
 
 app.Run();
