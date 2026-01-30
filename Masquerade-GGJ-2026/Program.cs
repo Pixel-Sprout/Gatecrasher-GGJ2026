@@ -42,4 +42,7 @@ app.MapControllers();
 // Mapuj hub Echo
 app.MapHub<Masquerade_GGJ_2026.Hubs.EchoHub>("/hubs/echo");
 
+// Mapuj hub Game
+app.MapHub<Masquerade_GGJ_2026.Hubs.GameHub>("/hubs/game");
+
 app.Run();
