@@ -1,0 +1,43 @@
+<div class="mask-comparison-container">
+  <!-- Header -->
+  <div class="mask-comparison-header">
+    <h1>Compare Masks</h1>
+    <p class="subtitle">Vote for the most different mask</p>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="mask-comparison-content">
+    <div class="masks-grid">
+      <div 
+        *ngFor="let mask of playerMasks; let i = index"
+        class="mask-card"
+        [class.selected]="selectedMaskId === mask.id"
+        (click)="selectMask(mask.id)">
+        
+        <div class="mask-image-wrapper">
+          <img [src]="mask.imageData" [alt]="mask.playerName + ' mask'" class="mask-image" />
+        </div>
+        
+        <div class="mask-info">
+          <h3 class="player-name">{{ mask.playerName }}</h3>
+          <p class="player-role">{{ mask.playerRole }}</p>
+        </div>
+
+        <div class="vote-indicator" *ngIf="selectedMaskId === mask.id">
+          <span class="checkmark">✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer / Actions -->
+  <div class="mask-comparison-footer">
+    <button class="btn btn-skip">Skip Vote</button>
+    <button 
+      class="btn btn-vote" 
+      (click)="submitVote()"
+      [disabled]="selectedMaskId === null">
+      Submit Vote
+    </button>
+  </div>
+</div>
