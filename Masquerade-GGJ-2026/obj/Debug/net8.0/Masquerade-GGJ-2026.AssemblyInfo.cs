@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Masquerade-GGJ-2026")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+22f70455cbe4f3fe394d2327d1e7c288531be5f3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c14f225e921c98bd2469d5150623498e5df890fa")]
 [assembly: System.Reflection.AssemblyProductAttribute("Masquerade-GGJ-2026")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Masquerade-GGJ-2026")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
