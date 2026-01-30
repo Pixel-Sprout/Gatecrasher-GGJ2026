@@ -1,0 +1,64 @@
+<div class="mask-creator-container">
+  <!-- Header -->
+  <div class="mask-creator-header">
+    <h1>Draw Your Mask</h1>
+  </div>
+
+  <!-- Main Canvas Area -->
+  <div class="mask-creator-content">
+    <div class="canvas-wrapper">
+      <canvas 
+        id="maskCanvas" 
+        class="drawing-canvas"
+        (mousedown)="startDrawing($event)"
+        (mousemove)="draw($event)"
+        (mouseup)="stopDrawing()"
+        (mouseleave)="stopDrawing()">
+      </canvas>
+      @if (showInstructions) {
+        <div class="canvas-instructions">Draw your mask here</div>
+      }
+    </div>
+
+    <!-- Drawing Tools -->
+    <div class="drawing-tools">
+      <h3>Drawing Tools</h3>
+      
+      <div class="tool-group">
+        <label>Brush Color:</label>
+        <input 
+          type="color" 
+          [(ngModel)]="brushColor" 
+          class="color-picker"
+        />
+      </div>
+
+      <div class="tool-group">
+        <label>Brush Size:</label>
+        <input 
+          type="range" 
+          min="1" 
+          max="50" 
+          [(ngModel)]="brushSize"
+          class="slider"
+        />
+        <span class="size-display">{{ brushSize }}px</span>
+      </div>
+
+      <div class="tool-group">
+        <button 
+          class="btn btn-clear" 
+          (click)="clearCanvas()"
+          [disabled]="!canvasHasDrawing">
+          Clear Canvas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer / Actions -->
+  <div class="mask-creator-footer">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button class="btn btn-ready" (click)="onReady()">Ready</button>
+  </div>
+</div>
