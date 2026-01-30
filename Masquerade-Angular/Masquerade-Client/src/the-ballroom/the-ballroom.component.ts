@@ -5,7 +5,8 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-the-ballroom',
   imports: [RouterOutlet],
   templateUrl: './the-ballroom.component.html',
-  styleUrl: './the-ballroom.component.scss'
+  styleUrl: './the-ballroom.component.scss',
+  standalone: true
 })
 export class TheBallroomComponent {
   // This is for Phase 4+

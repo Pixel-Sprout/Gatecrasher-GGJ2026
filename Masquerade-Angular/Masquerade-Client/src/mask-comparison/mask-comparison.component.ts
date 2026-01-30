@@ -5,7 +5,8 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-mask-comparison',
   imports: [RouterOutlet],
   templateUrl: './mask-comparison.component.html',
-  styleUrl: './mask-comparison.component.scss'
+  styleUrl: './mask-comparison.component.scss',
+  standalone: true
 })
 export class MaskComparisonComponent {
   

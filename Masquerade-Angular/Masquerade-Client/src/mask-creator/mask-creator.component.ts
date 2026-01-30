@@ -5,7 +5,8 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-mask-creator',
   imports: [RouterOutlet],
   templateUrl: './mask-creator.component.html',
-  styleUrl: './mask-creator.component.scss'
+  styleUrl: './mask-creator.component.scss',
+  standalone: true
 })
 export class MaskCreatorComponent {
   
