@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { AppStateService } from '../services/app-state.service';
+import { GameState } from '../types/game-state.enum';
 
 interface Player {
   id: string;
@@ -13,16 +13,15 @@ interface Player {
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule],
   templateUrl: './lobby.component.html',
-  styleUrl: './lobby.component.scss'
+  styleUrl: './lobby.component.scss',
 })
 export class LobbyComponent implements OnInit {
   players: Player[] = [];
   currentPlayerId = 'player1';
   currentPlayerReady = false;
-
-  constructor(private router: Router) {}
+  private appState = inject(AppStateService);
 
   ngOnInit(): void {
     this.initializePlayers();
@@ -44,10 +43,10 @@ export class LobbyComponent implements OnInit {
       this.currentPlayerReady = currentPlayer.ready;
     }
 
-    // If all players are ready, redirect to mask creator
+    // If all players are ready, navigate to mask creator
     if (this.allPlayersReady) {
       setTimeout(() => {
-        this.router.navigate(['/mask-creator']);
+        this.appState.setState(GameState.MASK_DRAW);
       }, 800);
     }
   }

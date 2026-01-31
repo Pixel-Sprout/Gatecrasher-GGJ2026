@@ -1,8 +1,8 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AppStateService } from '../services/app-state.service';
+import { GameState } from '../types/game-state.enum';
 
 interface FeatureSection {
   name: string;
@@ -11,7 +11,7 @@ interface FeatureSection {
 
 @Component({
   selector: 'app-mask-creator',
-  imports: [RouterOutlet, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './mask-creator.component.html',
   styleUrl: './mask-creator.component.scss',
   standalone: true
@@ -44,7 +44,7 @@ export class MaskCreatorComponent implements AfterViewInit {
   private lastX: number = 0;
   private lastY: number = 0;
 
-  private router = inject(Router);
+  private appState = inject(AppStateService);
 
   ngAfterViewInit(): void {
     this.loadFeatureSectionsFromState();
@@ -189,13 +189,13 @@ export class MaskCreatorComponent implements AfterViewInit {
       console.warn('Could not save mask to localStorage', e);
     }
 
-    // Redirect to mask-comparison view
-    this.router.navigate(['/mask-comparison']);
+    // Navigate to mask-comparison
+    this.appState.setState(GameState.MASK_COMPARISON);
   }
 
   onCancel(): void {
     // Navigate back to lobby
-    this.router.navigate(['/lobby']);
+    this.appState.setState(GameState.LOBBY);
   }
 
   toggleEraser(): void {

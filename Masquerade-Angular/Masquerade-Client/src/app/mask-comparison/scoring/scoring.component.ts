@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { AppStateService } from '../../services/app-state.service';
+import { GameState } from '../../types/game-state.enum';
 
 interface ScoringPlayer {
   id: string;
@@ -16,13 +16,12 @@ interface ScoringPlayer {
 @Component({
   selector: 'app-scoring',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule],
   templateUrl: './scoring.component.html',
   styleUrl: './scoring.component.scss'
 })
 export class ScoringComponent implements OnInit {
-  private router = inject(Router); // inject 
-  
+  private appState = inject(AppStateService);
   public players: ScoringPlayer[] = [];
   public currentPlayerId = 'player1'; // replace with real current player id from auth/service
   public navigating = false;
@@ -78,7 +77,7 @@ export class ScoringComponent implements OnInit {
       this.navigating = true;
       const features = this.generateNewFeatureSections();
       setTimeout(() => {
-        this.router.navigate(['/mask-creator'], { state: { featureSections: features } });
+        this.appState.setState(GameState.MASK_DRAW);
       }, 800);
     }
   }
@@ -119,6 +118,6 @@ export class ScoringComponent implements OnInit {
 
   // mark current player as not ready and go to lobby immediately (Cancel)
   backToLobby(): void {
-    this.router.navigate(['/lobby']);
+    this.appState.setState(GameState.LOBBY);
   }
 }

@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AppStateService } from '../services/app-state.service';
+import { GameState } from '../types/game-state.enum';
 
 interface PlayerMask {
   id: string;
@@ -19,7 +19,7 @@ interface VotingPlayer {
 
 @Component({
   selector: 'app-mask-comparison',
-  imports: [RouterOutlet, CommonModule],
+  imports: [CommonModule],
   templateUrl: './mask-comparison.component.html',
   styleUrl: './mask-comparison.component.scss',
   standalone: true
@@ -39,7 +39,7 @@ export class MaskComparisonComponent implements OnInit {
     return (this.votedCount / this.votingPlayers.length) * 100;
   }
 
-  constructor(private router: Router) {}
+  private appState = inject(AppStateService);
 
   ngOnInit(): void {
     this.loadPlayerMasks();
@@ -129,9 +129,9 @@ export class MaskComparisonComponent implements OnInit {
 
     // Navigate to scoring after submitting this user's vote
     // (the backend/game server would normally decide when to show results;
-    // for now redirect the submitting user immediately)
+    // for now navigate the submitting user immediately)
     setTimeout(() => {
-      this.router.navigate(['/scoring']);
+      this.appState.setState(GameState.SCORING);
     }, 300);
   }
 
@@ -144,9 +144,9 @@ export class MaskComparisonComponent implements OnInit {
       currentPlayer.hasVoted = true;
     }
 
-    // Redirect to scoring for the current user after skipping
+    // Navigate to scoring for the current user after skipping
     setTimeout(() => {
-      this.router.navigate(['/scoring']);
+      this.appState.setState(GameState.SCORING);
     }, 300);
   }
 
