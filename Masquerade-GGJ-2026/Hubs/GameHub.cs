@@ -125,6 +125,9 @@ namespace Masquerade_GGJ_2026.Hubs
             //await GetAllGameIds();
             //Join the newly created game
             await JoinGame(newGame.GameId.ToString());
+
+            await _notifier.PhaseChanged(newGame);
+
             return newGame.GameId.ToString();
         }
         

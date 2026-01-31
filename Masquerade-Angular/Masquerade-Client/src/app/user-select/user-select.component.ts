@@ -31,6 +31,12 @@ export class UserSelectComponent implements OnInit, OnDestroy {
       this.roomsSource.next(rooms);
     });
     this.subs.add(s);
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
   }
 
   ngOnDestroy(): void {
@@ -68,9 +74,6 @@ export class UserSelectComponent implements OnInit, OnDestroy {
     if (!this.connected) return;
 
     this.svc.joinGame(room.gameId)
-      .then(() =>{
-        this.appState.setState(GameState.LOBBY, "");
-      });
   }
 
   createRoom() {
@@ -78,7 +81,6 @@ export class UserSelectComponent implements OnInit, OnDestroy {
     const name = (this.newRoomName || '').trim();
     if (!name) return;
     this.svc.CreateAndJoinGame(name);
-    this.appState.setState(GameState.LOBBY, "");
   }
 
   trackByGameId(index: number, room: GameRoom) {

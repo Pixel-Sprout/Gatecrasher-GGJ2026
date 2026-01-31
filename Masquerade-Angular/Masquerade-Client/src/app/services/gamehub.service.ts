@@ -116,7 +116,6 @@ export class GameHubService {
     if (!this.connection) throw new Error('Not connected');
     const newGameId = await this.connection.invoke<string>('CreateAndJoinGame', gameName);
     this.gameId = newGameId;
-    await this.connection.invoke('JoinGame', this.gameId);
   }
 
   async joinGame(gameId: string) {
