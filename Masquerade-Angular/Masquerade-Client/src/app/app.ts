@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { LobbyComponent } from './lobby/lobby.component';
 import { MaskCreatorComponent } from './mask-creator/mask-creator.component';
 import { MaskComparisonComponent } from './mask-comparison/mask-comparison.component';
-import { ScoringComponent } from './mask-comparison/scoring/scoring.component';
+import { ScoringComponent } from './scoring/scoring.component';
 import { TheBallroomComponent } from './the-ballroom/the-ballroom.component';
 import { AppStateService } from './services/app-state.service';
 import { GameState } from './types/game-state.enum';
