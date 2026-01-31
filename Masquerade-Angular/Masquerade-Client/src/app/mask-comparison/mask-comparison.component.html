@@ -10,27 +10,28 @@
     <!-- Left: Masks Grid -->
     <div class="masks-section">
       <div class="masks-grid">
-        <div 
-          *ngFor="let mask of playerMasks; let i = index"
-          class="mask-card"
-          [class.selected]="selectedMaskId === mask.id"
-          (click)="selectMask(mask.id)">
-          
-          <div class="mask-image-wrapper">
-            <img [src]="mask.imageData" [alt]="mask.playerName + ' mask'" class="mask-image" />
-          </div>
-          
-          <div class="mask-info">
-            <h3 class="player-name">{{ mask.playerName }}</h3>
-            <p class="player-role">{{ mask.playerRole }}</p>
-          </div>
-
-          @if (selectedMaskId === mask.id) {
-            <div class="vote-indicator">
-              <span class="checkmark">✓</span>
+        @for ( mask of playerMasks; track mask.id ) {
+          <div 
+            class="mask-card"
+            [class.selected]="selectedMaskId === mask.id"
+            (click)="selectMask(mask.id)">
+            
+            <div class="mask-image-wrapper">
+              <img [src]="mask.imageData" [alt]="mask.playerName + ' mask'" class="mask-image" />
             </div>
-          }
-        </div>
+            
+            <div class="mask-info">
+              <h3 class="player-name">{{ mask.playerName }}</h3>
+              <p class="player-role">{{ mask.playerRole }}</p>
+            </div>
+  
+            @if (selectedMaskId === mask.id) {
+              <div class="vote-indicator">
+                <span class="checkmark">✓</span>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -38,28 +39,29 @@
     <div class="voting-summary-section">
       <h2>Voting Status</h2>
       <div class="players-voting-list">
-        <div 
-          *ngFor="let player of votingPlayers"
-          class="voting-player-item"
-          [class.voted]="player.hasVoted">
-          
-          <div class="player-info">
-            <span class="player-name">{{ player.name }}</span>
-            <span class="player-role">{{ player.role }}</span>
+        @for ( player of votingPlayers; track player.id ) {
+          <div 
+            class="voting-player-item"
+            [class.voted]="player.hasVoted">
+            
+            <div class="player-info">
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-role">{{ player.role }}</span>
+            </div>
+  
+            <div class="vote-status">
+              @if (player.hasVoted) {
+                <span class="status-badge approved">
+                  <span class="icon">✓</span> Approved
+                </span>
+              } @else {
+                <span class="status-badge pending">
+                  <span class="icon">⏳</span> Waiting
+                </span>
+              }
+            </div>
           </div>
-
-          <div class="vote-status">
-            @if (player.hasVoted) {
-              <span class="status-badge approved">
-                <span class="icon">✓</span> Approved
-              </span>
-            } @else {
-              <span class="status-badge pending">
-                <span class="icon">⏳</span> Waiting
-              </span>
-            }
-          </div>
-        </div>
+        }
       </div>
 
       <div class="summary-stats">

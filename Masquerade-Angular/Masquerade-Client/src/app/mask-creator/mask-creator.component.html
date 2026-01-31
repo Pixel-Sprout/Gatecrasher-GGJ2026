@@ -6,52 +6,116 @@
 
   <!-- Main Canvas Area -->
   <div class="mask-creator-content">
-    <div class="canvas-wrapper">
-      <canvas 
-        id="maskCanvas" 
-        class="drawing-canvas"
-        (mousedown)="startDrawing($event)"
-        (mousemove)="draw($event)"
-        (mouseup)="stopDrawing()"
-        (mouseleave)="stopDrawing()">
-      </canvas>
-      @if (showInstructions) {
-        <div class="canvas-instructions">Draw your mask here</div>
-      }
+    <!-- Left Column: Canvas + Tools -->
+    <div class="left-column">
+      <!-- Drawing Tools -->
+      <div class="drawing-tools">
+        <h3>Drawing Tools</h3>
+        
+        <div class="tool-group">
+          <label>Brush Color:</label>
+          <input 
+            type="color" 
+            [(ngModel)]="brushColor" 
+            (change)="updateBrushPreview()"
+            class="color-picker"
+          />
+        </div>
+
+        <div class="tool-group">
+          <label>Brush Size:</label>
+          <input 
+            type="range" 
+            min="1" 
+            max="50" 
+            [(ngModel)]="brushSize"
+            (change)="updateBrushPreview()"
+            class="slider"
+          />
+          <span class="size-display">{{ brushSize }}px</span>
+        </div>
+
+        <!-- Brush Preview -->
+        <div class="tool-group">
+          <label>Brush Preview:</label>
+          <div class="brush-preview-container">
+            <canvas 
+              #brushPreviewCanvas 
+              class="brush-preview"
+              width="60" 
+              height="60">
+            </canvas>
+          </div>
+        </div>
+
+        <div class="tool-group tool-toggle">
+          <label>Tool:</label>
+          <div class="toggle-buttons">
+            <button
+              class="btn tool-btn"
+              [class.active]="!isEraser"
+              (click)="setEraser(false)"
+              aria-pressed="{{ !isEraser }}">
+              <span class="icon" aria-hidden="true">
+                <!-- Brush SVG -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 22l2-4 10-10 4 4L8 22H2z" fill="currentColor" />
+                </svg>
+              </span>
+              Brush
+            </button>
+
+            <button
+              class="btn tool-btn"
+              [class.active]="isEraser"
+              (click)="setEraser(true)"
+              aria-pressed="{{ isEraser }}">
+              <span class="icon" aria-hidden="true">
+                <!-- Eraser SVG -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 17.25L8.75 11.5 14.5 17.25 9.75 22H3v-4.75zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor" />
+                </svg>
+              </span>
+              Eraser
+            </button>
+          </div>
+        </div>
+
+        <div class="tool-group">
+          <button 
+            class="btn btn-clear" 
+            (click)="clearCanvas()"
+            [disabled]="!canvasHasDrawing">
+            Clear Canvas
+          </button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas 
+          #maskCanvas
+          id="maskCanvas" 
+          class="drawing-canvas"
+          (mousedown)="startDrawing($event)"
+          (mousemove)="draw($event)"
+          (mouseup)="stopDrawing()"
+          (mouseleave)="stopDrawing()">
+        </canvas>
+        @if (showInstructions) {
+          <div class="canvas-instructions">Draw your mask here</div>
+        }
+      </div>
+     
     </div>
 
-    <!-- Drawing Tools -->
-    <div class="drawing-tools">
-      <h3>Drawing Tools</h3>
-      
-      <div class="tool-group">
-        <label>Brush Color:</label>
-        <input 
-          type="color" 
-          [(ngModel)]="brushColor" 
-          class="color-picker"
-        />
-      </div>
-
-      <div class="tool-group">
-        <label>Brush Size:</label>
-        <input 
-          type="range" 
-          min="1" 
-          max="50" 
-          [(ngModel)]="brushSize"
-          class="slider"
-        />
-        <span class="size-display">{{ brushSize }}px</span>
-      </div>
-
-      <div class="tool-group">
-        <button 
-          class="btn btn-clear" 
-          (click)="clearCanvas()"
-          [disabled]="!canvasHasDrawing">
-          Clear Canvas
-        </button>
+    <!-- Right Column: Features to Draw -->
+    <div class="right-column">
+      <h2>Features to Draw</h2>
+      <div class="features-list">
+        <div class="feature-section" *ngFor="let section of featureSections">
+          <h3 class="feature-title">{{ section.name }}</h3>
+          <p class="feature-description">{{ section.description }}</p>
+        </div>
       </div>
     </div>
   </div>

@@ -29,11 +29,11 @@ export class LobbyComponent implements OnInit {
   }
 
   private initializePlayers(): void {
-    // Initialize demo players
+    // Initialize players - Player 2 is already ready, waiting for Player 1
     this.players = [
-      { id: 'player1', name: 'You', role: 'Mask Maker', ready: false },
-      { id: 'player2', name: 'Player 2', role: 'Mask Maker', ready: false },
-      { id: 'player3', name: 'Player 3', role: 'Mask Maker', ready: false }
+      { id: 'player1', name: 'You (Player 1)', role: 'Mask Maker', ready: false },
+      { id: 'player2', name: 'Player 2', role: 'Mask Maker', ready: true },
+      { id: 'player3', name: 'Player 3', role: 'Mask Maker', ready: true }
     ];
   }
 

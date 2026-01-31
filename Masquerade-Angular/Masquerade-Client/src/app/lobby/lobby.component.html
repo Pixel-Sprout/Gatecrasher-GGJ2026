@@ -10,16 +10,15 @@
     <div class="players-section">
       <h2>Players</h2>
       <div class="players-list">
-        <div class="player-item">
-          <span class="player-name">Player 1</span>
-          <span class="player-role">Role 1</span>
-          <span class="ready-status ready">✓ Ready</span>
-        </div>
-        <div class="player-item">
-          <span class="player-name">Player 2</span>
-          <span class="player-role">Role 2</span>
-          <span class="ready-status waiting">⏳ Waiting</span>
-        </div>
+        @for ( player of players; track player.id ) {
+          <div class="player-item" [class.ready]="player.ready" [class.waiting]="!player.ready">
+            <span class="player-name">{{ player.name }}</span>
+            <span class="player-role">{{ player.role }}</span>
+            <span class="ready-status">
+              {{ player.ready ? '✓ Ready' : '⏳ Waiting' }}
+            </span>
+          </div>
+        }
       </div>
     </div>
 
@@ -60,7 +59,7 @@
 
   <!-- Footer / Actions -->
   <div class="lobby-footer">
-    <button class="btn btn-ready">Ready</button>
-    <button class="btn btn-leave">Leave Game</button>
+    <button class="btn btn-ready" (click)="toggleReady()" [disabled]="currentPlayerReady">{{ currentPlayerReady ? 'You are Ready!' : 'Ready' }}</button>
+    <button class="btn btn-leave" (click)="leaveGame()">Leave Game</button>
   </div>
 </div>

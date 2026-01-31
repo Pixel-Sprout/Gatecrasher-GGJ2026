@@ -1,0 +1,19 @@
+.app-layout-wrapper {
+  width: 100%;
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 0 40px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 1200px) {
+    max-width: 90%;
+    padding: 0 30px;
+  }
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+}

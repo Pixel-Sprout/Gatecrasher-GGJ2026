@@ -53,13 +53,15 @@ export class ScoringComponent implements OnInit {
     this.players = demo.map(p => {
       const randomScore = Math.floor(Math.random() * 20); // random integer
       const approved = Math.random() > 0.5;
+      // Other players are already ready except the current player
+      const isReady = p.id !== this.currentPlayerId;
       return {
         id: p.id,
         name: p.name,
         role: p.role,
         score: randomScore,
         selectedDifferentMaskId: approved ? 'someMaskId' : null,
-        hasReady: false,
+        hasReady: isReady,
         approved
       } as ScoringPlayer;
     });
@@ -71,11 +73,12 @@ export class ScoringComponent implements OnInit {
     if (!me) return;
     me.hasReady = !me.hasReady;
 
-    // if everyone is ready, navigate back to lobby after a short delay
+    // if everyone is ready, navigate to mask-creator with a new feature set
     if (this.allReady && !this.navigating) {
       this.navigating = true;
+      const features = this.generateNewFeatureSections();
       setTimeout(() => {
-        this.router.navigate(['/lobby']);
+        this.router.navigate(['/mask-creator'], { state: { featureSections: features } });
       }, 800);
     }
   }
@@ -84,6 +87,25 @@ export class ScoringComponent implements OnInit {
   addPoints(playerId: string, pts = 1): void {
     const p = this.players.find(x => x.id === playerId);
     if (p) p.score += pts;
+  }
+
+  // Generate a new set of feature requirements for the next round
+  private generateNewFeatureSections(): { name: string; description: string }[] {
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    const eyes = ['Duże', 'Małe', 'Migdałowe', 'Wąskie'];
+    const mouths = ['Szerokie', 'Wąskie', 'Uśmiechnięte', 'Zamknięte'];
+    const noses = ['Duży', 'Mały', 'Prosty', 'Haczykowaty'];
+    const beards = ['Gęsty', 'Rzadki', 'Brak', 'Krótki'];
+    const ears = ['Szpiczaste', 'Zaokrąglone', 'Duże', 'Małe'];
+
+    return [
+      { name: 'Oczy', description: pick(eyes) },
+      { name: 'Usta', description: pick(mouths) },
+      { name: 'Nos', description: pick(noses) },
+      { name: 'Zarost', description: pick(beards) },
+      { name: 'Uszy', description: pick(ears) }
+    ];
   }
 
   get allReady(): boolean {
