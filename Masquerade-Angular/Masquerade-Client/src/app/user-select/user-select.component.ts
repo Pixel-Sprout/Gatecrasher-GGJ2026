@@ -1,7 +1,7 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, inject, signal, OnInit, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {Subscription} from 'rxjs';
+import {BehaviorSubject, Subscription} from 'rxjs';
 import {GameHubService, GameRoom} from '../services/gamehub.service';
 import {AppStateService} from '../services/app-state.service';
 import {GameState} from '../types/game-state.enum';
@@ -13,40 +13,44 @@ import {GameState} from '../types/game-state.enum';
   templateUrl: './user-select.component.html',
   styleUrls: ['./user-select.component.scss']
 })
-export class UserSelectComponent {
+export class UserSelectComponent implements OnInit, OnDestroy {
   private svc = inject(GameHubService);
   protected readonly appState = inject(AppStateService);
 
-  rooms = signal<GameRoom[]>([]);
+  roomsSource = new BehaviorSubject<GameRoom[]>([]);
+  rooms = this.roomsSource.asObservable();
   userName = '';
-  connected = signal(false);
+  connected = signal<boolean>(false);
   newRoomName = '';
   errorMessage = signal<string | null>(null);
 
-  // subskrypcja do listy pokojów (wycofywana przy disconnect/reset)
-  private roomsSub: Subscription | null = null;
+  private subs = new Subscription();
+
+  ngOnInit(): void {
+    const s = this.svc.receiveGameRooms$.subscribe(rooms => {
+      this.roomsSource.next(rooms);
+    });
+    this.subs.add(s);
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
 
   connect() {
     if (!this.userName.trim()) {
       return;
     }
 
-    this.svc.receiveGameRooms$.subscribe(room => {
-      this.rooms.set(room);
-    });
-
     this.svc.connect(this.userName).then((success) => {
       if(success) {
-        this.connected.set(true);
         this.errorMessage.set(null);
-        console.log(this.userName + ' connected to the game hub.', success);
-        this.svc.getAvailableGameRooms().finally();
+        // Wywołanie na serwerze powinno spowodować, że receiveGameRooms$ wyemituje listę
+        this.svc.getAvailableGameRooms().catch(() => {});
+        this.connected.set(true);
       }else{
         this.errorMessage.set('Error connecting to server.');
       }
-    }, (error) => {
-      this.errorMessage.set('Błąd połączenia: ' + (error?.message ?? String(error)));
-      console.error('Error connecting to game hub:', error);
     });
   }
 
@@ -54,10 +58,6 @@ export class UserSelectComponent {
     this.connected.set(false);
 
     this.errorMessage.set(null);
-
-    // odsubskrybuj listę pokojów
-    this.roomsSub?.unsubscribe();
-    this.roomsSub = null;
 
     this.svc.disconnect().then(() => {
       console.log(this.userName + ' disconnected from the game hub.');
@@ -81,13 +81,8 @@ export class UserSelectComponent {
     this.appState.setState(GameState.LOBBY, "");
   }
 
-  reset() {
-    this.userName = '';
-    this.connected.set(false);
-    this.errorMessage.set(null);
-
-    // odsubskrybuj też przy resecie
-    this.roomsSub?.unsubscribe();
-    this.roomsSub = null;
+  trackByGameId(index: number, room: GameRoom) {
+    return room?.gameId ?? index;
   }
+
 }

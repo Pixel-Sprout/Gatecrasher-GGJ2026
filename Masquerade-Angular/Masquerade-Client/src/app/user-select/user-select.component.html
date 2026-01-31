@@ -23,7 +23,7 @@
       </div>
       <h3>Available Rooms</h3>
       <div class="room-item">
-        @for (room of rooms(); track room.gameId) {
+        @for (room of rooms | async; track room.gameId) {
         <div class="room-info">
           <span class="room-name">{{ room.gameName }}</span>
           <span class="room-status">{{ room.currentPhase }}</span>
