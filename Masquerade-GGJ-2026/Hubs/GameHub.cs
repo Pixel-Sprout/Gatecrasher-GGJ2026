@@ -53,6 +53,10 @@ namespace Masquerade_GGJ_2026.Hubs
                     if(game != null)
                     {
                         game.Players.RemoveAll(p => p.Player.ConnectionId == Context.ConnectionId);
+                        if (!game.Players.Any())
+                        {
+                            game.PhaseDetails.CurrentPhase = RoundPhase.Lobby;
+                        }
                     }
                     await _notifier.UserLeft(gameId, Context.ConnectionId, username);
                 }

@@ -57,12 +57,12 @@ export class SignalrService {
       this.receiveMessage$.next(message);
     });
 
-    this.connection.on('GameStateChanged', (state: string) => {
-      const gameState = Object.values(GameState).includes(state as GameState)
-        ? (state as GameState)
-        : GameState.LOBBY;
-      this.gameStateChanged$.next(gameState);
-    });
+    // this.connection.on('GameStateChanged', (state: string) => {
+    //   const gameState = Object.values(GameState).includes(state as GameState)
+    //     ? (state as GameState)
+    //     : GameState.LOBBY;
+    //   this.gameStateChanged$.next(gameState);
+    // });
 
     await this.connection.start();
   }

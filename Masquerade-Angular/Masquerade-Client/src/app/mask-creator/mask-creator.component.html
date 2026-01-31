@@ -113,8 +113,8 @@
       <h2>Features to Draw</h2>
       <div class="features-list">
         <div class="feature-section" *ngFor="let section of featureSections">
-          <h3 class="feature-title">{{ section.name }}</h3>
-          <p class="feature-description">{{ section.description }}</p>
+          <h3 class="feature-title">{{ section }}</h3>
+          <!-- <p class="feature-description">{{ section.description }}</p> -->
         </div>
       </div>
     </div>
@@ -122,7 +122,6 @@
 
   <!-- Footer / Actions -->
   <div class="mask-creator-footer">
-    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
     <button class="btn btn-ready" (click)="onReady()">Ready</button>
   </div>
 </div>

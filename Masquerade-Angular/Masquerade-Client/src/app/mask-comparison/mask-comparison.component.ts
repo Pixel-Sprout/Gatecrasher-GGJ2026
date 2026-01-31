@@ -131,7 +131,7 @@ export class MaskComparisonComponent implements OnInit {
     // (the backend/game server would normally decide when to show results;
     // for now navigate the submitting user immediately)
     setTimeout(() => {
-      this.appState.setState(GameState.SCORING);
+      this.appState.setState(GameState.SCORING, null);
     }, 300);
   }
 
@@ -146,7 +146,7 @@ export class MaskComparisonComponent implements OnInit {
 
     // Navigate to scoring for the current user after skipping
     setTimeout(() => {
-      this.appState.setState(GameState.SCORING);
+      this.appState.setState(GameState.SCORING, null);
     }, 300);
   }
 

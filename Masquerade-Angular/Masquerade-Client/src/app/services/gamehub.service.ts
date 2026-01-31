@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject, Observable } from 'rxjs';
+import { GameState } from '../types/game-state.enum';
 
 export interface UserEvent {
   connectionId: string;
@@ -16,7 +17,7 @@ export class GameHubService {
   private connection?: HubConnection;
   private receiveMessage$ = new Subject<string>();
   private receivePlayersInTheRoom$ = new Subject<UserEvent[]>();
-  private receivePhaseEnded$ = new Subject<number>();
+  private receivePhaseChanged$ = new Subject<[GameState, any]>();
   private gameId: string = '';
 
   onReceiveMessage(): Observable<string> {
@@ -27,8 +28,8 @@ export class GameHubService {
     return this.receivePlayersInTheRoom$.asObservable();
   }
 
-  onReceivePhaseEnded(): Observable<number> {
-    return this.receivePhaseEnded$.asObservable();
+  onReceivePhaseChanged(): Observable<[GameState, any]> {
+    return this.receivePhaseChanged$.asObservable();
   }
 
   async connect(username: string): Promise<void> {
@@ -60,8 +61,8 @@ export class GameHubService {
       this.receivePlayersInTheRoom$.next(players);
     });
     
-    this.connection.on('PhaseEnded', (phase: number) => {
-      this.receivePhaseEnded$.next(phase);
+    this.connection.on('PhaseChanged', (phase: GameState, message: any) => {
+      this.receivePhaseChanged$.next([phase, message]);
     });
 
     await this.connection.start();

@@ -1,7 +1,7 @@
 export enum GameState {
-  LOBBY = 'LOBBY',
-  MASK_DRAW = 'MASK_DRAW',
-  MASK_COMPARISON = 'MASK_COMPARISON',
-  BALLROOM = 'BALLROOM',
-  SCORING = 'SCORING'
+  LOBBY = 0,
+  MASK_DRAW = 1,
+  MASK_COMPARISON = 2,
+  BALLROOM = 4, //Change to 3 when ready
+  SCORING = 3
 }

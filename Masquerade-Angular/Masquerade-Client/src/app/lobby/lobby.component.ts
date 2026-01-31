@@ -35,20 +35,17 @@ export class LobbyComponent implements OnInit {
       this.svc.onReceivePlayersInTheRoom().subscribe(msg => 
         this.players.set(msg.map((player, i) => ({ id: player.connectionId, name: player.username, role: 'Mask Maker', ready: player.isReady }))
       ));
-      this.svc.onReceivePhaseEnded().subscribe(phase => {
-        if (phase === 0) {
-          setTimeout(() => {
-            this.appState.setState(GameState.MASK_DRAW);
-          }, 800);
-        }}
-      );  
+      this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
+        setTimeout(() => {
+          this.appState.setState(phase as GameState, message);
+        }, 800)
+      );
       this.svc.getAllGameIds();  
     });
   }
 
   toggleReady(): void {
     this.svc.ready();
-
   }
 
   // get allPlayersReady(): boolean {
