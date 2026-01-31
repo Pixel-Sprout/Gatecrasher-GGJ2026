@@ -77,7 +77,7 @@ export class ScoringComponent implements OnInit {
       this.navigating = true;
       const features = this.generateNewFeatureSections();
       setTimeout(() => {
-        this.appState.setState(GameState.MASK_DRAW);
+        this.appState.setState(GameState.MASK_DRAW, null);
       }, 800);
     }
   }
@@ -118,6 +118,6 @@ export class ScoringComponent implements OnInit {
 
   // mark current player as not ready and go to lobby immediately (Cancel)
   backToLobby(): void {
-    this.appState.setState(GameState.LOBBY);
+    this.appState.setState(GameState.LOBBY, null);
   }
 }

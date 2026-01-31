@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
+import { GameHubService } from '../services/gamehub.service';
 
 interface FeatureSection {
   name: string;
@@ -27,13 +28,7 @@ export class MaskCreatorComponent implements AfterViewInit {
   canvasHasDrawing: boolean = false;
   
   // Features to draw
-  featureSections: FeatureSection[] = [
-    { name: 'Oczy', description: 'Duże' },
-    { name: 'Usta', description: 'Szerokie' },
-    { name: 'Nos', description: 'Mały' },
-    { name: 'Zarost', description: 'Gęsty' },
-    { name: 'Uszy', description: 'Szpiczaste' }
-  ];
+  featureSections: string[] = [];
   
   private canvas!: HTMLCanvasElement;
   private context!: CanvasRenderingContext2D;
@@ -45,18 +40,25 @@ export class MaskCreatorComponent implements AfterViewInit {
   private lastY: number = 0;
 
   private appState = inject(AppStateService);
+  private svc = inject(GameHubService);
 
   ngAfterViewInit(): void {
     this.loadFeatureSectionsFromState();
     this.initializeCanvas();
     this.updateBrushPreview();
+    
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
   }
 
   private loadFeatureSectionsFromState(): void {
     try {
-      const state = (history && (history as any).state) || {};
-      if (state && state.featureSections && Array.isArray(state.featureSections)) {
-        this.featureSections = state.featureSections as FeatureSection[];
+      var message = this.appState.drawingMessageSignal();
+      if (message && message.maskDescriptions && Array.isArray(message.maskDescriptions)) {
+        this.featureSections = message.maskDescriptions;
         console.log('Loaded featureSections from navigation state', this.featureSections);
       }
     } catch (e) {
@@ -190,12 +192,7 @@ export class MaskCreatorComponent implements AfterViewInit {
     }
 
     // Navigate to mask-comparison
-    this.appState.setState(GameState.MASK_COMPARISON);
-  }
-
-  onCancel(): void {
-    // Navigate back to lobby
-    this.appState.setState(GameState.LOBBY);
+    this.svc.ready();
   }
 
   toggleEraser(): void {
