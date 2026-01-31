@@ -1,7 +1,7 @@
-// ...existing code...
 import { Injectable } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject, Observable } from 'rxjs';
+import { GameState } from '../types/game-state.enum';
 
 export interface UserEvent {
   connectionId: string;
@@ -14,6 +14,7 @@ export class SignalrService {
   private userJoined$ = new Subject<UserEvent>();
   private userLeft$ = new Subject<UserEvent>();
   private receiveMessage$ = new Subject<string>();
+  private gameStateChanged$ = new Subject<GameState>();
 
   onUserJoined(): Observable<UserEvent> {
     return this.userJoined$.asObservable();
@@ -25,6 +26,10 @@ export class SignalrService {
 
   onReceiveMessage(): Observable<string> {
     return this.receiveMessage$.asObservable();
+  }
+
+  onGameStateChanged(): Observable<GameState> {
+    return this.gameStateChanged$.asObservable();
   }
 
   async connect(baseUrl: string, username: string): Promise<void> {
@@ -52,6 +57,13 @@ export class SignalrService {
       this.receiveMessage$.next(message);
     });
 
+    this.connection.on('GameStateChanged', (state: string) => {
+      const gameState = Object.values(GameState).includes(state as GameState)
+        ? (state as GameState)
+        : GameState.LOBBY;
+      this.gameStateChanged$.next(gameState);
+    });
+
     await this.connection.start();
   }
 
@@ -65,4 +77,4 @@ export class SignalrService {
     await this.connection.stop();
   }
 }
-// ...existing code...
+

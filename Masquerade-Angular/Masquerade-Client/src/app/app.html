@@ -1,5 +1,20 @@
-
-
 <div class="app-layout-wrapper">
-	<router-outlet />
+	@switch (appState.currentState()) {
+		@default
+		@case (GameState.LOBBY) {
+			<app-lobby />
+		}
+		@case (GameState.MASK_DRAW) {
+			<app-mask-creator />
+		}
+		@case (GameState.MASK_COMPARISON) {
+			<app-mask-comparison />
+		}
+		@case (GameState.BALLROOM) {
+			<app-the-ballroom />
+		}
+		@case (GameState.SCORING) {
+			<app-scoring />
+		}
+	}
 </div>
