@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { EndpointLocator } from './EndpointLocator.service';
 
 @Injectable({ providedIn: 'root' })
 export class HttpApiService {
-  private baseUrl = 'http://localhost:5000'; //To Adjust url use procy.conf.json during development
+  private locator: EndpointLocator = inject(EndpointLocator);
 
 	constructor(private http: HttpClient) {
 	}
@@ -23,7 +23,7 @@ export class HttpApiService {
       throw new Error('gameId is required');
     }
 
-    const url = `${this.baseUrl}/Game/${encodeURIComponent(gameId)}/${encodeURIComponent(playerId)}/drawing`;
+    const url = `${this.locator.getHttpApiEndpoint()}/Game/${encodeURIComponent(gameId)}/${encodeURIComponent(playerId)}/drawing`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -122,9 +122,9 @@ namespace Masquerade_GGJ_2026.Hubs
             };
             GamesState.Games.Add(newGame);
 
+            await GetAllGameIds();
             //Join the newly created game
             await JoinGame(newGame.GameId.ToString());
-            await GetAllGameIds();
             return newGame.GameId.ToString();
         }
         

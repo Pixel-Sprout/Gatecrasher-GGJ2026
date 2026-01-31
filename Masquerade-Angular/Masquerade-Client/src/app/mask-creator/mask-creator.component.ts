@@ -106,8 +106,24 @@ export class MaskCreatorComponent implements AfterViewInit {
     this.canvasHasDrawing = false;
   }
 
+  touchStart(event: TouchEvent): void {
+    this._startDrawing(event.touches[0].clientX, event.touches[0].clientY);
+  }
+
+  touchEnd(event: TouchEvent): void {
+    event.preventDefault();
+    console.log("touch end", event);
+  }
+
+  touchMove(event: TouchEvent): void {
+    event.preventDefault();
+    this._draw(event.touches[0].clientX, event.touches[0].clientY);
+    console.log("touch move", event);
+  }
+
   startDrawing(event: MouseEvent): void {
-    if (!this.canvas) return;
+    this._startDrawing(event.clientX, event.clientY);
+    /*if (!this.canvas) return;
 
     // Hide instructions when user starts drawing
     this.showInstructions = false;
@@ -117,15 +133,32 @@ export class MaskCreatorComponent implements AfterViewInit {
     const rect = this.canvas.getBoundingClientRect();
     // Use CSS pixel coordinates (context is scaled to DPR)
     this.lastX = event.clientX - rect.left;
-    this.lastY = event.clientY - rect.top;
+    this.lastY = event.clientY - rect.top;*/
+  }
+
+  _startDrawing(clientX:number, clientY: number){
+    if (!this.canvas) return;
+
+    // Hide instructions when user starts drawing
+    this.showInstructions = false;
+    this.canvasHasDrawing = true;
+
+    this.isDrawing = true;
+    const rect = this.canvas.getBoundingClientRect();
+    // Use CSS pixel coordinates (context is scaled to DPR)
+    this.lastX = clientX - rect.left;
+    this.lastY = clientY - rect.top;
   }
 
   draw(event: MouseEvent): void {
+    this._draw(event.clientX, event.clientY)
+  }
+  _draw(clientX:number, clientY: number): void {
     if (!this.isDrawing || !this.context) return;
 
     const rect = this.canvas.getBoundingClientRect();
-    const currentX = event.clientX - rect.left;
-    const currentY = event.clientY - rect.top;
+    const currentX = clientX - rect.left;
+    const currentY = clientY - rect.top;
 
     // Draw line from last position to current position
     // Use eraser by switching composite operation; destination-out erases pixels

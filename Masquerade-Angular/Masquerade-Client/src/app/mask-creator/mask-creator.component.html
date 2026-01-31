@@ -11,12 +11,12 @@
       <!-- Drawing Tools -->
       <div class="drawing-tools">
         <h3>Drawing Tools</h3>
-        
+
         <div class="tool-group">
           <label>Brush Color:</label>
-          <input 
-            type="color" 
-            [(ngModel)]="brushColor" 
+          <input
+            type="color"
+            [(ngModel)]="brushColor"
             (change)="updateBrushPreview()"
             class="color-picker"
           />
@@ -24,10 +24,10 @@
 
         <div class="tool-group">
           <label>Brush Size:</label>
-          <input 
-            type="range" 
-            min="1" 
-            max="50" 
+          <input
+            type="range"
+            min="1"
+            max="50"
             [(ngModel)]="brushSize"
             (change)="updateBrushPreview()"
             class="slider"
@@ -39,10 +39,10 @@
         <div class="tool-group">
           <label>Brush Preview:</label>
           <div class="brush-preview-container">
-            <canvas 
-              #brushPreviewCanvas 
+            <canvas
+              #brushPreviewCanvas
               class="brush-preview"
-              width="60" 
+              width="60"
               height="60">
             </canvas>
           </div>
@@ -82,8 +82,8 @@
         </div>
 
         <div class="tool-group">
-          <button 
-            class="btn btn-clear" 
+          <button
+            class="btn btn-clear"
             (click)="clearCanvas()"
             [disabled]="!canvasHasDrawing">
             Clear Canvas
@@ -92,20 +92,23 @@
       </div>
 
       <div class="canvas-wrapper">
-        <canvas 
+        <canvas
           #maskCanvas
-          id="maskCanvas" 
+          id="maskCanvas"
           class="drawing-canvas"
           (mousedown)="startDrawing($event)"
           (mousemove)="draw($event)"
           (mouseup)="stopDrawing()"
-          (mouseleave)="stopDrawing()">
+          (mouseleave)="stopDrawing()"
+          (touchstart)="touchStart($event)"
+          (touchmove)="touchMove($event)"
+          (touchend)="stopDrawing()">
         </canvas>
         @if (showInstructions) {
           <div class="canvas-instructions">Draw your mask here</div>
         }
       </div>
-     
+
     </div>
 
     <!-- Right Column: Features to Draw -->

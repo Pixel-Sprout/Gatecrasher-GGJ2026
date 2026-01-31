@@ -1,8 +1,9 @@
 // ...existing code...
-import { Injectable } from '@angular/core';
+import { Injectable, inject} from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject, Observable } from 'rxjs';
 import { GameState } from '../types/game-state.enum';
+import { EndpointLocator } from './EndpointLocator.service';
 
 export interface UserEvent {
   connectionId: string;
@@ -18,7 +19,7 @@ export interface GameRoom{
 
 @Injectable({ providedIn: 'root' })
 export class GameHubService {
-  private baseUrl = 'http://localhost:5000'; //ToDo: move to config and replace with reelase server url
+  private locator: EndpointLocator = inject(EndpointLocator);
   private connection?: HubConnection;
   private receiveMessage$ = new Subject<string>();
   private receivePlayersInTheRoom$ = new Subject<UserEvent[]>();
@@ -40,12 +41,12 @@ export class GameHubService {
     return this.receivePhaseChanged$.asObservable();
   }
 
-  async connect(username: string): Promise<void> {
+  async connect(username: string): Promise<boolean> {
     if (this.connection && this.connection.state !== 'Disconnected') {
-      return;
+      return false;
     }
 
-    const hubUrl = `${this.baseUrl.replace(/\/$/, '')}/hubs/game?username=${encodeURIComponent(username)}`;
+    const hubUrl = `${this.locator.getSignalRHubEndpoint().replace(/\/$/, '')}/hubs/game?username=${encodeURIComponent(username)}`;
 
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl)
@@ -80,7 +81,14 @@ export class GameHubService {
       this.receivePhaseChanged$.next([phase, message]);
     });
 
+    try{
     await this.connection.start();
+    } catch (error) {
+      Promise.reject("Could not connect to server");
+      console.error('Error starting connection:', error);
+      return false;
+    }
+    return true;
   }
 
   async sendMessage(message: string): Promise<void> {

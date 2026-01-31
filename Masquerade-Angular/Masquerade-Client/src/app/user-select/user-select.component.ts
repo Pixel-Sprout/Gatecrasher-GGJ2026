@@ -1,6 +1,7 @@
 import {Component, inject, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {Subscription} from 'rxjs';
 import {GameHubService, GameRoom} from '../services/gamehub.service';
 import {AppStateService} from '../services/app-state.service';
 import {GameState} from '../types/game-state.enum';
@@ -20,28 +21,45 @@ export class UserSelectComponent {
   userName = '';
   connected = false;
   newRoomName = '';
+  errorMessage = signal<string | null>(null);
+
+  // subskrypcja do listy pokojów (wycofywana przy disconnect/reset)
+  private roomsSub: Subscription | null = null;
 
   connect() {
     if (!this.userName.trim()) {
       return;
     }
-    this.connected = true;
 
     this.svc.receiveGameRooms$.subscribe(room => {
       this.rooms.set(room);
     });
-    this.svc.connect(this.userName).then(() => {
-      // log when connected
-      console.log(this.userName + ' connected to the game hub.');
-      this.svc.getAvailableGameRooms().finally();
+
+    this.svc.connect(this.userName).then((success) => {
+      if(success) {
+        this.errorMessage.set(null);
+        console.log(this.userName + ' connected to the game hub.', success);
+        this.svc.getAvailableGameRooms().finally();
+        this.connected = true;
+      }else{
+        this.errorMessage.set('Error connecting to server.');
+      }
+    }, (error) => {
+      this.errorMessage.set('Błąd połączenia: ' + (error?.message ?? String(error)));
+      console.error('Error connecting to game hub:', error);
     });
   }
 
   disconnect() {
     this.connected = false;
 
+    this.errorMessage.set(null);
+
+    // odsubskrybuj listę pokojów
+    this.roomsSub?.unsubscribe();
+    this.roomsSub = null;
+
     this.svc.disconnect().then(() => {
-      // log when disconnected
       console.log(this.userName + ' disconnected from the game hub.');
     });
   }
@@ -66,5 +84,10 @@ export class UserSelectComponent {
   reset() {
     this.userName = '';
     this.connected = false;
+    this.errorMessage.set(null);
+
+    // odsubskrybuj też przy resecie
+    this.roomsSub?.unsubscribe();
+    this.roomsSub = null;
   }
 }
