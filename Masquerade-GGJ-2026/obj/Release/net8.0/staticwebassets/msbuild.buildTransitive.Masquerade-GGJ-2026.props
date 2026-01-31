@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/Masquerade-GGJ-2026.props" />
-</Project>

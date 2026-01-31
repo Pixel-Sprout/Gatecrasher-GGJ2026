@@ -6,3 +6,5 @@
 **/obj/*
 **/bin/
 **/.vs
+.vs
+**/Debug
