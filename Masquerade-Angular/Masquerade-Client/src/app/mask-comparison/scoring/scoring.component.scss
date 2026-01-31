@@ -1,0 +1,135 @@
+.scoring-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f6f7fb;
+  color: #2c3e50;
+}
+
+.scoring-header {
+  background: #2c3e50;
+  color: white;
+  padding: 18px 22px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+
+  h1 { margin: 0; font-size: 22px; }
+  .subtitle { margin: 6px 0 0; font-size: 13px; color: #dfe9f2; }
+}
+
+.scoring-body {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Scoreboard (left) */
+.scoreboard {
+  flex: 2;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: auto;
+
+  h2 { margin-top: 0; color: #34495e; }
+
+  .score-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+
+  .score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: #fbfdff;
+    border-left: 4px solid transparent;
+  }
+
+  .score-item.me {
+    border-left-color: #3498db;
+    background: linear-gradient(90deg, rgba(52,152,219,0.04), #fbfdff);
+  }
+
+  .player-left { display: flex; align-items: center; gap: 12px; }
+  .player-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ecf0f1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    color:#2c3e50;
+  }
+  .player-meta { display:flex; flex-direction:column; }
+  .player-name { font-weight:700; }
+  .player-role { font-size:12px; color:#7f8c8d; }
+
+  .player-right { display:flex; align-items:center; gap:10px; }
+  .player-score { font-weight:800; font-size:18px; color:#2c3e50; min-width:48px; text-align:right; }
+  .player-approved { background:#2ecc71; color:white; padding:4px 8px; border-radius:12px; font-weight:700; }
+}
+
+/* Summary (right) */
+.round-summary {
+  flex: 1;
+  min-width: 260px;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+  overflow:auto;
+
+  h2 { margin:0; color:#34495e; }
+
+  .summary-block {
+    border-top: 1px solid #ecf0f1;
+    padding-top: 12px;
+    .summary-row { display:flex; justify-content:space-between; padding:6px 0; }
+    .label { font-weight:700; color:#2c3e50; }
+    .value { color:#3498db; font-weight:800; }
+  }
+
+  .players-ready-list {
+    h3 { margin: 8px 0; font-size:14px; color:#34495e; }
+    ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+    li {
+      display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:6px; background:#fbfdff;
+      &.ready { background:#eafbe9; border-left:4px solid #2ecc71; }
+      .name { font-weight:700; }
+      .status { font-size:12px; color:#7f8c8d; }
+    }
+  }
+
+  .actions { display:flex; gap:10px; margin-top:auto; }
+  .btn {
+    padding: 10px 14px;
+    border-radius:6px;
+    border: none;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-ready { background: #2ecc71; color:white; flex:1; }
+  .btn-back { background:#95a5a6; color:white; }
+
+  .note { margin-top:6px; font-size:13px; color:#2ecc50; font-weight:700; text-align:center; }
+}
+
+/* responsive */
+@media (max-width: 900px) {
+  .scoring-body { flex-direction: column; padding: 12px; }
+  .round-summary { min-width: unset; order: 2; }
+  .scoreboard { order: 1; }
+}

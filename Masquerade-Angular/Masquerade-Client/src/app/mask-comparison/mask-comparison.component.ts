@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -27,6 +28,7 @@ export class MaskComparisonComponent implements OnInit {
   playerMasks: PlayerMask[] = [];
   votingPlayers: VotingPlayer[] = [];
   selectedMaskId: string | null = null;
+  currentPlayerId = 'player1';
 
   get votedCount(): number {
     return this.votingPlayers.filter(p => p.hasVoted).length;
@@ -36,6 +38,8 @@ export class MaskComparisonComponent implements OnInit {
     if (this.votingPlayers.length === 0) return 0;
     return (this.votedCount / this.votingPlayers.length) * 100;
   }
+
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadPlayerMasks();
@@ -101,25 +105,37 @@ export class MaskComparisonComponent implements OnInit {
     console.log('Vote submitted for mask:', this.selectedMaskId);
     
     // Mark current player as voted
-    const currentPlayer = this.votingPlayers[0]; // TODO: Get actual current player
+    const currentPlayer = this.votingPlayers.find(p => p.id === this.currentPlayerId);
     if (currentPlayer) {
       currentPlayer.hasVoted = true;
     }
 
-    // TODO: Send vote to backend
-    // TODO: Navigate to results or next view
+    // If all players have voted, redirect to scoring
+    if (this.allVoted) {
+      setTimeout(() => {
+        this.router.navigate(['/scoring']);
+      }, 800);
+    }
   }
 
   skipVote(): void {
     console.log('Vote skipped');
     
     // Mark current player as voted (even though they skipped)
-    const currentPlayer = this.votingPlayers[0]; // TODO: Get actual current player
+    const currentPlayer = this.votingPlayers.find(p => p.id === this.currentPlayerId);
     if (currentPlayer) {
       currentPlayer.hasVoted = true;
     }
 
-    // TODO: Handle skip vote
-    // TODO: Navigate to next view
+    // If all players have voted, redirect to scoring
+    if (this.allVoted) {
+      setTimeout(() => {
+        this.router.navigate(['/scoring']);
+      }, 800);
+    }
+  }
+
+  get allVoted(): boolean {
+    return this.votingPlayers.length > 0 && this.votingPlayers.every(p => p.hasVoted);
   }
 }

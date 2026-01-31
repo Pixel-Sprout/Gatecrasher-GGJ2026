@@ -1,4 +1,5 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,8 @@ export class MaskCreatorComponent implements AfterViewInit {
   private isDrawing: boolean = false;
   private lastX: number = 0;
   private lastY: number = 0;
+
+  private router = inject(Router);
 
   ngAfterViewInit(): void {
     this.initializeCanvas();
@@ -105,11 +108,13 @@ export class MaskCreatorComponent implements AfterViewInit {
     const imageData = this.canvas.toDataURL('image/png');
     console.log('Mask drawing saved:', imageData);
     // TODO: Send to backend or store in service
+    
     // Redirect to mask-comparison view
+    this.router.navigate(['/mask-comparison']);
   }
 
   onCancel(): void {
-    // TODO: Navigate back to lobby
-    console.log('Drawing cancelled');
+    // Navigate back to lobby
+    this.router.navigate(['/lobby']);
   }
 }

@@ -1,0 +1,75 @@
+<div class="scoring-container">
+  <header class="scoring-header">
+    <h1>Round Results</h1>
+    <p class="subtitle">Players scored points for choosing the odd mask — results below.</p>
+  </header>
+
+  <div class="scoring-body">
+    <!-- Left: Scoreboard -->
+    <section class="scoreboard">
+      <h2>Scoreboard</h2>
+      <ul class="score-list">
+        @for (p of scoreboard; track p.id) {
+        <li  class="score-item" [class.me]="p.id === currentPlayerId">
+          <div class="player-left">
+            <div class="player-avatar">{{ p.name.charAt(0) }}</div>
+            <div class="player-meta">
+              <div class="player-name">{{ p.name }}</div>
+              <div class="player-role">{{ p.role }}</div>
+            </div>
+          </div>
+
+          <div class="player-right">
+            <div class="player-score">{{ p.score }}</div>
+            @if ( p.approved) {
+              <div class="player-approved">✓</div>
+            }
+          </div>
+        </li>
+        }
+      </ul>
+    </section>
+
+    <!-- Right: Round summary and readiness -->
+    <aside class="round-summary">
+      <h2>Round Summary</h2>
+
+      <div class="summary-block">
+        <div class="summary-row">
+          <span class="label">Players:</span>
+          <span class="value">{{ players.length }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Approved picks:</span>
+          <span class="value">{{ filteredPlayers.length }}</span>
+        </div>
+      </div>
+
+      <div class="players-ready-list">
+        <h3>Ready Status</h3>
+        <ul>
+          @for ( p of players; track p.id) {
+            <li [class.ready]="p.hasReady">
+              <span class="name">{{ p.name }}</span>
+              <span class="status">{{ p.hasReady ? 'Ready' : 'Waiting' }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ready" (click)="toggleReady()">
+          {{ playerReady.hasReady ? 'Unready' : 'Ready for more' }}
+        </button>
+
+        <button class="btn btn-back" (click)="backToLobby()">Back to Lobby</button>
+      </div>
+
+      @if ( allReady) {
+        <div class="note">
+          All players are ready — redirecting to Lobby...
+        </div>
+      }
+    </aside>
+  </div>
+</div>
