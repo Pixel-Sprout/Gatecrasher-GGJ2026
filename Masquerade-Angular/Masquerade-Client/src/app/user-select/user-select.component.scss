@@ -1,0 +1,41 @@
+.user-select-container {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.connect-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.connect-row input {
+  flex: 1;
+  padding: 8px;
+}
+
+.rooms-list {
+  margin-top: 12px;
+}
+
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.room-name {
+  font-weight: 600;
+}
+
+.room-status {
+  margin-left: 8px;
+  color: #666;
+}
+
+.room-actions button[disabled] {
+  opacity: 0.5;
+}

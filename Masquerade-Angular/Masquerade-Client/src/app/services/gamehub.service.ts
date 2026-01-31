@@ -10,6 +10,12 @@ export interface UserEvent {
   isReady: boolean;
 }
 
+export interface GameRoom{
+  gameId: string,
+  gameName: string,
+  currentPhase: string
+}
+
 @Injectable({ providedIn: 'root' })
 export class GameHubService {
   private baseUrl = 'http://localhost:5000'; //ToDo: move to config and replace with reelase server url
@@ -17,6 +23,7 @@ export class GameHubService {
   private receiveMessage$ = new Subject<string>();
   private receivePlayersInTheRoom$ = new Subject<UserEvent[]>();
   private receivePhaseChanged$ = new Subject<[GameState, any]>();
+  public receiveGameRooms$ = new Subject<GameRoom[]>();
   public playerId: string = '';
   public playerName: string = '';
   public gameId: string = '';
@@ -55,12 +62,14 @@ export class GameHubService {
       this.receiveMessage$.next(message);
     });
 
-    this.connection.on('ReceiveAllGameIds', (ids: string[]) => {
+    this.connection.on('ReceiveAllGameIds', (rooms: GameRoom[]) => {
+      console.log(rooms)
+      this.receiveGameRooms$.next(rooms);
       // Set first id as current gameId
-      if (ids.length > 0) {
-        this.gameId = ids[0];
+      /*if (rooms.length > 0) {
+        this.gameId = rooms[0].gameId;
         this.joinGame();
-      }
+      }*/
     });
 
     this.connection.on('PlayersInTheRoom', (players: UserEvent[]) => {
@@ -89,8 +98,15 @@ export class GameHubService {
     await this.connection.invoke('GetAllGameIds');
   }
 
-  async joinGame() {
+  async getAvailableGameRooms(): Promise<Observable<GameRoom[]>> {
     if (!this.connection) throw new Error('Not connected');
+    await this.connection.invoke('GetAllGameIds');
+    return this.receiveGameRooms$.asObservable();
+  }
+
+  async joinGame(gameId: string) {
+    if (!this.connection) throw new Error('Not connected');
+    this.gameId = gameId;
     await this.connection.invoke('JoinGame', this.gameId);
   }
 

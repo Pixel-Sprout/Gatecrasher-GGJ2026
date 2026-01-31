@@ -7,6 +7,7 @@ import { ScoringComponent } from './mask-comparison/scoring/scoring.component';
 import { TheBallroomComponent } from './the-ballroom/the-ballroom.component';
 import { AppStateService } from './services/app-state.service';
 import { GameState } from './types/game-state.enum';
+import {UserSelectComponent} from './user-select/user-select.component';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,8 @@ import { GameState } from './types/game-state.enum';
     MaskCreatorComponent,
     MaskComparisonComponent,
     ScoringComponent,
-    TheBallroomComponent
+    TheBallroomComponent,
+    UserSelectComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

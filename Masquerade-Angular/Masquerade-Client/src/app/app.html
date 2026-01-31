@@ -1,6 +1,9 @@
 <div class="app-layout-wrapper">
 	@switch (appState.currentState()) {
 		@default
+    @case (GameState.USER_SELECT){
+        <app-user-select></app-user-select>
+    }
 		@case (GameState.LOBBY) {
 			<app-lobby />
 		}

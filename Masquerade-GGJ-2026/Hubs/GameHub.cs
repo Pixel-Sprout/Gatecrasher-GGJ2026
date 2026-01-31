@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Masquerade_GGJ_2026.Models.Messages;
 
 namespace Masquerade_GGJ_2026.Hubs
 {
@@ -69,8 +70,14 @@ namespace Masquerade_GGJ_2026.Hubs
         // Broadcast all game ids to the connected clients
         public async Task GetAllGameIds()
         {
-            var gameIds = GamesState.Games.Select(g => g.GameId.ToString()).ToList();
-            await Clients.Caller.SendAsync("ReceiveAllGameIds", gameIds);
+            await Clients.Caller.SendAsync("ReceiveAllGameIds", 
+                GamesState.Games
+                    .Select(g => new GameRoomMessage()
+                    {
+                        GameId =  g.GameId,
+                        GameName = g.GameName,
+                        CurrentPhase = g.PhaseDetails.CurrentPhase.ToString()
+                    }).ToArray());
         }
 
         /// <summary>

@@ -1,0 +1,32 @@
+<div class="user-select-container">
+  <div class="user-select-header">
+    <h2>Join as Player</h2>
+  </div>
+
+  <div class="user-select-body">
+    <div class="connect-row">
+      <input type="text" placeholder="Enter your name" [(ngModel)]="userName" [disabled]="connected" />
+      <button (click)="connect()" [disabled]="connected || !userName.trim()">{{ connected ? 'Connected' : 'Connect' }}</button>
+      <button (click)="disconnect()" [disabled]="!connected || !userName.trim()">Disconnect</button>
+    </div>
+
+    <div class="rooms-list" *ngIf="connected">
+      <div class="create-room">
+        <input type="text" placeholder="Enter room name" [(ngModel)]="newRoomName" />
+        <button (click)="createRoom()" [disabled]="!connected || !newRoomName.trim()">Create</button>
+      </div>
+      <h3>Available Rooms</h3>
+      <div class="room-item">
+        @for (room of rooms(); track room.gameId) {
+        <div class="room-info">
+          <span class="room-name">{{ room.gameName }}</span>
+          <span class="room-status">{{ room.currentPhase }}</span>
+        </div>
+        <div class="room-actions">
+          <button (click)="joinRoom(room)" [disabled]="room.currentPhase !== 'Lobby'">Join</button>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
