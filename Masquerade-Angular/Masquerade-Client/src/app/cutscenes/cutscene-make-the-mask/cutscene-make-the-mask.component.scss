@@ -1,0 +1,55 @@
+:host{display:block}
+
+.cutscene-make-the-mask{
+  // position:fixed;
+  // left:0;right:0;top:0;bottom:0;
+  display:flex;
+  flex-flow:column;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.0);
+  overflow:hidden;
+  padding:2rem;
+  transition: opacity 900ms ease-in-out;
+}
+
+.cutscene-make-the-mask.fading{
+  opacity:0;
+  pointer-events:none;
+}
+
+.frame{
+  // position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  opacity:0;
+  animation-name: fadeInStay;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
+}
+
+.frame img{
+  max-width:400px;
+  max-height:400px;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  display:block;
+}
+@keyframes fadeInStay{
+  0% {
+    opacity: 0;
+    transform: translateX(-12vw) translateZ(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(0) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateZ(0);
+  }
+}

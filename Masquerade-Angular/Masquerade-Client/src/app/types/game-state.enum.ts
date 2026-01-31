@@ -5,4 +5,7 @@ export enum GameState {
   BALLROOM = 4, //Change to 3 when ready
   SCORING = 3,
   USER_SELECT = 5,
+  CUTSCENE_OPENING = 11,
+  CUTSCENE_MAKE_THE_MASK = 22,
+  CUTSCENE_THE_CHOICE = 33,
 }

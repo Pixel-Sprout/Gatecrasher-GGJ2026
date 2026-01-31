@@ -7,6 +7,9 @@ import { ScoringComponent } from './mask-comparison/scoring/scoring.component';
 import { TheBallroomComponent } from './the-ballroom/the-ballroom.component';
 import { AppStateService } from './services/app-state.service';
 import { GameState } from './types/game-state.enum';
+import { CutsceneOpeningComponent } from "./cutscenes/opening/cutscene-opening.component";
+import { CutsceneMakeTheMaskComponent } from './cutscenes/cutscene-make-the-mask/cutscene-make-the-mask.component';
+import { CutsceneTheChoiceComponent } from './cutscenes/the-choice/cutscene-the-choice.component';
 import {UserSelectComponent} from './user-select/user-select.component';
 
 @Component({
@@ -18,8 +21,11 @@ import {UserSelectComponent} from './user-select/user-select.component';
     MaskComparisonComponent,
     ScoringComponent,
     TheBallroomComponent,
+    CutsceneOpeningComponent,
+    CutsceneMakeTheMaskComponent,
+    CutsceneTheChoiceComponent,
     UserSelectComponent
-  ],
+],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

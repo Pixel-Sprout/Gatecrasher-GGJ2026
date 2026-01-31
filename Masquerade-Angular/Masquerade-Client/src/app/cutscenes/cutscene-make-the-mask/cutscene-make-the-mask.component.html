@@ -1,0 +1,10 @@
+<div class="cutscene-make-the-mask" [class.fading]="containerFading">
+  <div class="d-flex flex-row gap-3">
+    <div class="frame" [style.animationDelay]="animationDelay(0)" [style.animationDuration]="animationDuration()">
+      <img [src]="images()[0]"/>
+    </div>
+    <div class="frame" [style.animationDelay]="animationDelay(1)" [style.animationDuration]="animationDuration()">
+      <img [src]="images()[1]"/>
+    </div>
+  </div>
+</div>

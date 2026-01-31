@@ -1,6 +1,10 @@
+{{appState.currentState()}}
 <div class="app-layout-wrapper">
 	@switch (appState.currentState()) {
 		@default
+		@case (GameState.CUTSCENE_OPENING) {
+			<app-cutscene-opening />
+		}
     @case (GameState.USER_SELECT){
         <app-user-select></app-user-select>
     }
@@ -10,8 +14,14 @@
 		@case (GameState.MASK_DRAW) {
 			<app-mask-creator />
 		}
+		@case (GameState.CUTSCENE_MAKE_THE_MASK) {
+			<app-cutscene-make-the-mask />
+		}
 		@case (GameState.MASK_COMPARISON) {
 			<app-mask-comparison />
+		}
+		@case (GameState.CUTSCENE_THE_CHOICE) {
+			<app-cutscene-the-choice />
 		}
 		@case (GameState.BALLROOM) {
 			<app-the-ballroom />
