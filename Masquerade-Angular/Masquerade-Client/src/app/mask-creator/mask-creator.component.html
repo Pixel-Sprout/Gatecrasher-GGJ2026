@@ -1,11 +1,11 @@
-<div class="mask-creator-container">
+<div class="container">
   <!-- Header -->
-  <div class="mask-creator-header">
+  <div class="header">
     <h1>Draw Your Mask</h1>
   </div>
 
   <!-- Main Canvas Area -->
-  <div class="mask-creator-content">
+  <div class="content">
     <!-- Left Column: Canvas + Tools -->
     <div class="left-column">
       <!-- Drawing Tools -->
@@ -57,10 +57,7 @@
               (click)="setEraser(false)"
               aria-pressed="{{ !isEraser }}">
               <span class="icon" aria-hidden="true">
-                <!-- Brush SVG -->
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 22l2-4 10-10 4 4L8 22H2z" fill="currentColor" />
-                </svg>
+                🖌️
               </span>
               Brush
             </button>
@@ -71,10 +68,7 @@
               (click)="setEraser(true)"
               aria-pressed="{{ isEraser }}">
               <span class="icon" aria-hidden="true">
-                <!-- Eraser SVG -->
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 17.25L8.75 11.5 14.5 17.25 9.75 22H3v-4.75zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor" />
-                </svg>
+                🧼
               </span>
               Eraser
             </button>
@@ -123,7 +117,7 @@
   </div>
 
   <!-- Footer / Actions -->
-  <div class="mask-creator-footer">
+  <div class="footer">
     <button class="btn btn-ready" (click)="onReady()">Ready</button>
   </div>
 </div>

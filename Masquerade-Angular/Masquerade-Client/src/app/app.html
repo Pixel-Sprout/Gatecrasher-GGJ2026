@@ -1,5 +1,8 @@
-{{appState.currentState()}}
-<div class="app-layout-wrapper">
+<div class="app-layout-wrapper" 
+[ngClass]="{'bg-darkest'
+: appState.currentState() === GameState.CUTSCENE_THE_CHOICE 
+|| appState.currentState() === GameState.CUTSCENE_MAKE_THE_MASK 
+|| appState.currentState() === GameState.CUTSCENE_OPENING}">
 	@switch (appState.currentState()) {
 		@default
 		@case (GameState.CUTSCENE_OPENING) {

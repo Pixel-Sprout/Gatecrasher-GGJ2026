@@ -1,11 +1,11 @@
-<div class="lobby-container">
+<div class="container">
   <!-- Header -->
-  <div class="lobby-header">
+  <div class="header">
     <h1>Masquerade - Lobby</h1>
   </div>
 
   <!-- Main Content Area -->
-  <div class="lobby-content">
+  <div class="content">
     <!-- Players Section -->
     <div class="players-section">
       <h2>Players</h2>
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Chat Section -->
-    <div class="chat-section">
+    <!-- <div class="chat-section">
       <h3>Chat</h3>
       <div class="chat-messages">
         <div class="chat-message">
@@ -54,12 +54,12 @@
         <input type="text" placeholder="Type a message..." />
         <button>Send</button>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <!-- Footer / Actions -->
-  <div class="lobby-footer">
-    <button class="btn btn-ready" (click)="toggleReady()" [disabled]="currentPlayerReady">{{ currentPlayerReady ? 'You are Ready!' : 'Ready' }}</button>
+  <div class="footer">
     <button class="btn btn-leave" (click)="leaveGame()" [disabled]>Leave Game</button>
+    <button class="btn btn-ready" (click)="toggleReady()" [disabled]="currentPlayerReady">{{ currentPlayerReady ? 'You are Ready!' : 'Ready' }}</button>
   </div>
 </div>

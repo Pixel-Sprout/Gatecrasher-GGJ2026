@@ -1,4 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+
+/* sample using the font */
+body {
+	font-family: "Kaushan Script", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+* {
+  font-family: "Kaushan Script";
+}
+
+:root {
+  --darkest: #030300;
+  --dark: #463F3A;
+  --light-brown: #D6CA98;
+  
+  --burned-rose: #8C4843;
+  --light-rose: #af4863;
+  --witch: #8661C1;
+  --witch-dark: #2E294E;
+  --accent-green: #2ecc71;
+  --flat-green:var(--scheme-accent-mint);
+  
+  --scheme-background-dark: #5c4035;
+  --scheme-background-light:#fed9cf;
+  --scheme-accent:#fe8162;
+  --scheme-accent-blue:#58a4b0;
+  --scheme-accent-mint:#60D394;
+}
+
+.p-5 {
+  padding: 3rem;
+}
 .d-flex {
   display: flex;
 }
@@ -23,4 +55,109 @@
 }
 .gap-4 {
   gap: 1.5rem;
+}
+
+.bg-witch{
+  background-color: var(--witch);
+}
+.bg-darkest{
+  background-color: var(--darkest);
+}
+.bg-witch-dark{
+  background-color: var(--witch-dark);
+}
+.bg-light-brown {
+  background-color: var(--scheme-background-light);
+}
+.bg-burned-rose{
+  background-color: var(--burned-rose);
+}
+.bg-dark {
+  background-color: var(--scheme-background-dark);
+}
+.bg-scheme-dark {
+  background-color: var(--scheme-background-dark);
+}
+.bg-scheme-light {
+  background-color: var(--scheme-background-light);
+}
+.bg-scheme-accent {
+  background-color: var(--scheme-accent);
+}
+.bg-scheme-accent-blue {
+  background-color: var(--scheme-accent-blue);
+}
+.bg-scheme-accent-mint {
+  background-color: var(--scheme-accent-mint);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--scheme-background-light);
+  font-family: Arial, sans-serif;
+}
+.body {
+  padding:2rem .5rem;
+}
+.header {
+  background-color: var(--scheme-background-dark);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  background-color: var(--scheme-background-dark);
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &-ready {
+    background-color: var(--scheme-accent-mint);
+    color: white;
+
+    &:hover {
+      background-color: var(--scheme-accent-mint);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &-leave {
+    background-color: var(--burned-rose);
+    color: white;
+
+    &:hover {
+      background-color:var(--light-rose);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
 }

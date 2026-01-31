@@ -251,7 +251,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3498db, #2ecc71);
+  background: linear-gradient(90deg, var(--light-rose), var(--witch));
   transition: width 0.3s ease;
   display: flex;
   align-items: center;
@@ -295,7 +295,7 @@
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: #27ae60;
+      background-color: var(--scheme-accent-mint);
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
