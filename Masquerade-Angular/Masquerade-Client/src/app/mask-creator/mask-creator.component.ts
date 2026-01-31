@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -40,6 +40,7 @@ export class MaskCreatorComponent implements AfterViewInit {
   private isDrawing: boolean = false;
   private lastX: number = 0;
   private lastY: number = 0;
+  public isBadPlayer = signal<boolean>(false);
 
   private svc = inject(GameHubService);
   private api = inject(HttpApiService);
@@ -60,9 +61,16 @@ export class MaskCreatorComponent implements AfterViewInit {
   private loadFeatureSectionsFromState(): void {
     try {
       var message = this.appState.drawingMessageSignal();
-      if (message && message.maskDescriptions && Array.isArray(message.maskDescriptions)) {
-        this.featureSections = message.maskDescriptions;
-        console.log('Loaded featureSections from navigation state', this.featureSections);
+      if (message) { 
+        if (message.maskDescriptions && Array.isArray(message.maskDescriptions)) {
+          this.featureSections = message.maskDescriptions;
+          console.log('Loaded featureSections from navigation state', this.featureSections);
+        }
+        if (message.isPlayerEvil !== undefined)
+        {
+          this.isBadPlayer.set(message.isPlayerEvil);
+          console.log('isBadPlayer set to', this.isBadPlayer());
+        }
       }
     } catch (e) {
       // ignore

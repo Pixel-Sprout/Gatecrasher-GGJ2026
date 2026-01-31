@@ -110,6 +110,8 @@ namespace Masquerade_GGJ_2026.Hubs
             await _notifier.UserJoined(gameId!, Context.ConnectionId, username);
 
             game.Players.Add(new PlayerGameState { Player = new Player { ConnectionId = Context.ConnectionId, Username = username } });
+
+            await Clients.Caller.SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, _notifier.CreateLobbyMessage(game));
             await _notifier.SendPlayersInRoom(game);
         }
 

@@ -85,7 +85,8 @@ namespace Masquerade_GGJ_2026.Orchestrators
                     phaseDetails.PhaseEndsAt = null;
                     break;
                 default:
-                    throw new NotImplementedException("Phase not implemented in NextPhase orchestrator.");
+                    phaseDetails.PhaseEndsAt = null;
+                    break;
             }
 
             await _notifier.PhaseChanged(game);

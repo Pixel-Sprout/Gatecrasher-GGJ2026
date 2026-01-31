@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject, OnDestroy, signal } from "@angular/core";
 import { AppStateService } from '../../services/app-state.service';
 import { GameState } from '../../types/game-state.enum';
+import { GameHubService } from "../../services/gamehub.service";
 
 @Component({
   selector: 'app-cutscene-the-choice',
@@ -12,6 +13,7 @@ import { GameState } from '../../types/game-state.enum';
 })
 export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
+  private svc = inject(GameHubService);
 
   // animation timing (ms)
   private perImageDuration = 2200; // time between image starts
@@ -24,6 +26,12 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.loadFirstImages().then(() => this.startSequence());
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
   }
 
   ngOnDestroy(): void {
@@ -78,7 +86,7 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
 
     // After the sequence finishes, wait 2s then change app state to ballroom
     this.timers.push(setTimeout(() => {
-      this.appState.setState(GameState.SCORING, null);
+      this.svc.ready();
     }, fadeOutAt + 2000));
   }
 

@@ -60,7 +60,8 @@ namespace Masquerade_GGJ_2026.Orchestrators
                         await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, CreateScoreboardMessage(game));
                         break;
                     default:
-                        throw new ArgumentException("Invalid game phase");
+                        await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, null);
+                        break;
                 }
             }
         }
@@ -109,7 +110,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
             return message;
         }
 
-        private LobbyMessage CreateLobbyMessage(Game game)
+        public LobbyMessage CreateLobbyMessage(Game game)
         {
             return new LobbyMessage
             {

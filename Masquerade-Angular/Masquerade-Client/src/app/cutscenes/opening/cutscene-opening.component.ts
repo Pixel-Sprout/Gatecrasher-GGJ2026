@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject, OnDestroy, signal } from "@angular/core";
 import { AppStateService } from '../../services/app-state.service';
 import { GameState } from '../../types/game-state.enum';
+import { GameHubService } from "../../services/gamehub.service";
 
 @Component({
   selector: 'app-cutscene-opening',
@@ -12,6 +13,7 @@ import { GameState } from '../../types/game-state.enum';
 })
 export class CutsceneOpeningComponent implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
+  private svc = inject(GameHubService);
 
   // animation timing (ms)
   private perImageDuration = 2000; // time between image starts
@@ -24,6 +26,12 @@ export class CutsceneOpeningComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.loadFirstImages().then(() => this.startSequence());
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
   }
 
   ngOnDestroy(): void {
@@ -76,7 +84,7 @@ export class CutsceneOpeningComponent implements OnInit, OnDestroy {
 
     // After the sequence finishes, wait 2s then change app state to lobby
     this.timers.push(setTimeout(() => {
-      this.appState.setState(GameState.LOBBY, null);
+      this.svc.ready();
     }, fadeOutAt + 2000));
   }
 

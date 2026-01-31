@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject, OnDestroy, signal } from "@angular/core";
 import { AppStateService } from '../../services/app-state.service';
 import { GameState } from '../../types/game-state.enum';
+import { GameHubService } from "../../services/gamehub.service";
 
 @Component({
   selector: 'app-cutscene-make-the-mask',
@@ -12,7 +13,8 @@ import { GameState } from '../../types/game-state.enum';
 })
 export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
-
+  private svc = inject(GameHubService);
+  
   // animation timing (ms)
   private perImageDuration = 2200; // time between image starts
   private fadeDuration = 800; // fade-in duration
@@ -24,6 +26,12 @@ export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.loadFirstImages().then(() => this.startSequence());
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
   }
 
   ngOnDestroy(): void {
@@ -73,7 +81,7 @@ export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
 
     // After the sequence finishes, wait 2s then change app state to MASK_DRAW
     this.timers.push(setTimeout(() => {
-      this.appState.setState(GameState.MASK_DRAW, null);
+      this.svc.ready();
     }, fadeOutAt + 2000));
   }
 
