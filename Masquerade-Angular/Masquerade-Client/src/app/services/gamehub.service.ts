@@ -12,11 +12,12 @@ export interface UserEvent {
 
 @Injectable({ providedIn: 'root' })
 export class GameHubService {
-  private baseUrl = 'https://localhost:44330';
-  private username = 'Player';
+  private baseUrl = 'http://localhost:5000'; //ToDo: move to config and replace with reelase server url
   private connection?: HubConnection;
   private receiveMessage$ = new Subject<string>();
   private receivePlayersInTheRoom$ = new Subject<UserEvent[]>();
+  public playerId: string = '';
+  public playerName: string = '';
   private receivePhaseChanged$ = new Subject<[GameState, any]>();
   private gameId: string = '';
 
@@ -45,22 +46,27 @@ export class GameHubService {
       .configureLogging(LogLevel.Information)
       .build();
 
+    this.connection.on("PlayerState", (playerName: string, playerId:string) =>{
+      this.playerId = playerId;
+      this.playerName = playerName;
+    })
+
     this.connection.on('ReceiveMessage', (message: string) => {
       this.receiveMessage$.next(message);
     });
 
     this.connection.on('ReceiveAllGameIds', (ids: string[]) => {
-      // Set first id as current gameId 
+      // Set first id as current gameId
       if (ids.length > 0) {
         this.gameId = ids[0];
         this.joinGame();
       }
     });
-    
+
     this.connection.on('PlayersInTheRoom', (players: UserEvent[]) => {
       this.receivePlayersInTheRoom$.next(players);
     });
-    
+
     this.connection.on('PhaseChanged', (phase: GameState, message: any) => {
       this.receivePhaseChanged$.next([phase, message]);
     });

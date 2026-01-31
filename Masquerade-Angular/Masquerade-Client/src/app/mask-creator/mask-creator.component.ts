@@ -1,9 +1,11 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { GameHubService } from '../services/gamehub.service';
+import { HttpApiService } from '../services/httpApi.service';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
-import { GameHubService } from '../services/gamehub.service';
 
 interface FeatureSection {
   name: string;
@@ -26,10 +28,10 @@ export class MaskCreatorComponent implements AfterViewInit {
   brushSize: number = 5;
   showInstructions: boolean = true;
   canvasHasDrawing: boolean = false;
-  
+
   // Features to draw
   featureSections: string[] = [];
-  
+
   private canvas!: HTMLCanvasElement;
   private context!: CanvasRenderingContext2D;
   private cssWidth: number = 0;
@@ -39,15 +41,16 @@ export class MaskCreatorComponent implements AfterViewInit {
   private lastX: number = 0;
   private lastY: number = 0;
 
-  private appState = inject(AppStateService);
   private svc = inject(GameHubService);
+  private api = inject(HttpApiService);
+  private appState = inject(AppStateService);
 
   ngAfterViewInit(): void {
     this.loadFeatureSectionsFromState();
     this.initializeCanvas();
     this.updateBrushPreview();
-    
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
@@ -105,11 +108,11 @@ export class MaskCreatorComponent implements AfterViewInit {
 
   startDrawing(event: MouseEvent): void {
     if (!this.canvas) return;
-    
+
     // Hide instructions when user starts drawing
     this.showInstructions = false;
     this.canvasHasDrawing = true;
-    
+
     this.isDrawing = true;
     const rect = this.canvas.getBoundingClientRect();
     // Use CSS pixel coordinates (context is scaled to DPR)
@@ -157,16 +160,18 @@ export class MaskCreatorComponent implements AfterViewInit {
     this.context.fillStyle = '#ffffff';
     // clear using CSS pixel dimensions (context is already scaled)
     this.context.fillRect(0, 0, this.cssWidth || this.canvas.width, this.cssHeight || this.canvas.height);
-    
+
     // Show instructions again after clearing
     this.showInstructions = true;
     this.canvasHasDrawing = false;
   }
 
-  onReady(): void {
+  async onReady(): Promise<void> {
     // Get canvas data as image
     const imageData = this.canvas.toDataURL('image/png');
     console.log('Mask drawing saved:', imageData);
+
+    await this.api.postDrawing(this.svc.playerId, this.svc.gameId, imageData);
 
     // Save to localStorage as temporary transport to mask-comparison
     try {

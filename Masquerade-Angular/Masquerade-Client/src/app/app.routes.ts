@@ -5,11 +5,11 @@ import { MaskComparisonComponent } from './mask-comparison/mask-comparison.compo
 import { ScoringComponent } from './mask-comparison/scoring/scoring.component';
 
 export const routes: Routes = [
-  {
+  /*{
     path: '',
     redirectTo: 'lobby',
     pathMatch: 'full'
-  },
+  },*/
   {
     path: 'lobby',
     component: LobbyComponent
@@ -26,7 +26,13 @@ export const routes: Routes = [
     path: 'scoring',
     component: ScoringComponent
   },
-  { path: 'signalr-test', loadComponent: () => import('./signalr-test/signalr-test.component').then(m => m.SignalrTestComponent) },
-  { path: 'game-hub-test', loadComponent: () => import('./pages/game-hub-test/game-hub-test.component').then(m => m.GameHubTestComponent) },
+  {
+    path: 'signalr-test',
+    loadComponent: () => import('./signalr-test/signalr-test.component').then(m => m.SignalrTestComponent)
+  },
+  {
+    path: 'game-hub-test',
+    loadComponent: () => import('./pages/game-hub-test/game-hub-test.component').then(m => m.GameHubTestComponent)
+  },
   //{ path: '', pathMatch: 'full', redirectTo: 'signalr-test' }
 ];
