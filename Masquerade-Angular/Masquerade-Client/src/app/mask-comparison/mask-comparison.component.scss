@@ -41,12 +41,30 @@
 
 .masks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr;
   gap: 20px;
+  max-width: 85vw;
+  margin: 0 auto;
+}
+
+// Tablets and larger (768px+)
+@media (min-width: 768px) {
+  .masks-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
+  }
+}
+
+// Desktop (1024px+)
+@media (min-width: 1024px) {
+  .masks-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+  }
 }
 
 .mask-card {
-  background-color: white;
+  background-color: aliceblue;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -54,6 +72,9 @@
   transition: all 0.3s ease;
   border: 3px solid transparent;
   position: relative;
+  max-width: 300px;
+  margin: 0 auto;
+    padding: 1rem;
 
   &:hover {
     transform: translateY(-4px);
@@ -69,11 +90,11 @@
 .mask-image-wrapper {
   width: 100%;
   height: 250px;
-  background-color: #ecf0f1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+      padding-top: 1rem;
 }
 
 .mask-image {
@@ -85,7 +106,6 @@
 .mask-info {
   padding: 15px;
   text-align: center;
-  border-top: 1px solid #ecf0f1;
 
   .player-name {
     margin: 0 0 5px 0;
@@ -130,7 +150,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
 
   h2 {
     margin: 0 0 15px 0;
@@ -315,16 +334,12 @@
   }
 
   .masks-section {
-    flex: 1;
+    flex: none;
   }
 
   .voting-summary-section {
     flex: 0;
     max-height: 300px;
-  }
-
-  .masks-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 

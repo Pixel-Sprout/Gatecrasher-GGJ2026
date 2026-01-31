@@ -1,4 +1,4 @@
-<div class="container" [class.bg-witch-dark]="isBadPlayer()">
+<div class="container bg-scheme-light" [class.bg-witch-dark]="isBadPlayer()">
   <!-- Header -->
   <div class="header">
     <h1>Draw Your Mask</h1>
@@ -8,83 +8,6 @@
   <div class="content">
     <!-- Left Column: Canvas + Tools -->
     <div class="left-column">
-      <!-- Drawing Tools -->
-      <div class="drawing-tools">
-        <h3>Drawing Tools</h3>
-
-        <div class="tool-group">
-          <label>Brush Color:</label>
-          <input
-            type="color"
-            [(ngModel)]="brushColor"
-            (change)="updateBrushPreview()"
-            class="color-picker"
-          />
-        </div>
-
-        <div class="tool-group">
-          <label>Brush Size:</label>
-          <input
-            type="range"
-            min="1"
-            max="50"
-            [(ngModel)]="brushSize"
-            (change)="updateBrushPreview()"
-            class="slider"
-          />
-          <span class="size-display">{{ brushSize }}px</span>
-        </div>
-
-        <!-- Brush Preview -->
-        <div class="tool-group">
-          <label>Brush Preview:</label>
-          <div class="brush-preview-container">
-            <canvas
-              #brushPreviewCanvas
-              class="brush-preview"
-              width="60"
-              height="60">
-            </canvas>
-          </div>
-        </div>
-
-        <div class="tool-group tool-toggle">
-          <label>Tool:</label>
-          <div class="toggle-buttons">
-            <button
-              class="btn tool-btn"
-              [class.active]="!isEraser"
-              (click)="setEraser(false)"
-              aria-pressed="{{ !isEraser }}">
-              <span class="icon" aria-hidden="true">
-                🖌️
-              </span>
-              Brush
-            </button>
-
-            <button
-              class="btn tool-btn"
-              [class.active]="isEraser"
-              (click)="setEraser(true)"
-              aria-pressed="{{ isEraser }}">
-              <span class="icon" aria-hidden="true">
-                🧼
-              </span>
-              Eraser
-            </button>
-          </div>
-        </div>
-
-        <div class="tool-group">
-          <button
-            class="btn btn-clear"
-            (click)="clearCanvas()"
-            [disabled]="!canvasHasDrawing">
-            Clear Canvas
-          </button>
-        </div>
-      </div>
-
       <div class="canvas-wrapper">
         <canvas
           #maskCanvas
@@ -102,16 +25,103 @@
           <div class="canvas-instructions">Draw your mask here</div>
         }
       </div>
+    </div>
+    
+    <div class="middle-column">
+      <!-- Drawing Tools -->
+      <div class="drawing-tools">
+        <h3 class="d-none">Drawing Tools</h3>
+<div class="tool-group">
+          <label>Brush Size:</label>
+          <input
+            type="range"
+            min="1"
+            max="50"
+            [(ngModel)]="brushSize"
+            (change)="updateBrushPreview()"
+            class="slider"
+          />
+          <span class="size-display">{{ brushSize }}px</span>
+        </div>
 
+        <div class="d-flex flex-row">
+          <div class="tool">
+            <label>Brush Color:</label>
+            <input
+              type="color"
+              [(ngModel)]="brushColor"
+              (change)="updateBrushPreview()"
+              class="color-picker"
+            />
+          </div>
+          
+          <div class="tool">
+            <!-- Brush Preview -->
+            <label>Brush Preview:</label>
+            <canvas
+              #brushPreviewCanvas
+              class="brush-preview"
+              width="60"
+              height="60">
+            </canvas>
+            <!-- <div class="brush-preview-container">
+            </div> -->
+          </div>
+
+          <div class="tool">
+            <label>Tool:</label>
+            <div class="toggle-buttons">
+              <button
+                class="btn tool-btn"
+                [class.active]="!isEraser"
+                (click)="setEraser(false)"
+                aria-pressed="{{ !isEraser }}">
+                <span class="icon" aria-hidden="true">
+                  🖌️
+                </span>
+                Brush
+              </button>
+
+              <button
+                class="btn tool-btn"
+                [class.active]="isEraser"
+                (click)="setEraser(true)"
+                aria-pressed="{{ isEraser }}">
+                <span class="icon" aria-hidden="true">
+                  🧼
+                </span>
+                Eraser
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- <div class="tool-group">
+
+        </div> -->
+
+        
+
+        <div class="tool-group">
+          <button
+            class="btn btn-clear"
+            (click)="clearCanvas()"
+            [disabled]="!canvasHasDrawing">
+            Clear Canvas
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Right Column: Features to Draw -->
     <div class="right-column">
       <h2>Features to Draw</h2>
       <div class="features-list">
-        <div class="feature-section" *ngFor="let section of featureSections">
-          <h3 class="feature-title">{{ section }}</h3>
-        </div>
+        @for ( section of featureSections; track section) {
+          <div class="feature-section">
+            <h5 class="feature-title">{{ section }}</h5>
+          </div>
+        }
       </div>
     </div>
   </div>

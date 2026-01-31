@@ -1,14 +1,18 @@
 
 /* sample using the font */
 body {
-	font-family: "Kaushan Script", cursive;
+	font-family: "Ranchers", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
-* {
-  font-family: "Kaushan Script";
-}
 
+* {
+  font-family: "Ranchers";
+  letter-spacing: 1px;
+}
+input, button {
+  border-radius:4px;
+}
 :root {
   --darkest: #030300;
   --dark: #463F3A;
@@ -95,8 +99,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--scheme-background-light);
   font-family: Arial, sans-serif;
+  border-top-left-radius:1rem;
+  border-top-right-radius:1rem;
+  padding:1rem;
 }
 .body {
   padding:2rem .5rem;
@@ -107,7 +113,7 @@ body {
   padding: 20px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
+  border-radius: 8px;
   h1 {
     margin: 0;
     font-size: 28px;
@@ -116,18 +122,24 @@ body {
 
 .content {
   display: flex;
+  flex-flow:column;
   flex: 1;
-  gap: 20px;
-  padding: 20px;
+  gap: 10px;
+  padding: 10px 5px ;
   overflow-y: auto;
+
+  @media screen and (min-width: 1024px) {
+    padding: 20px 10px;
+  }
 }
 
 .footer {
   display: flex;
   gap: 12px;
-  padding: 20px;
+  padding: 0.5rem;
   background-color: var(--scheme-background-dark);
   justify-content: center;
+  border-radius:1rem;
 }
 
 .btn {

@@ -83,29 +83,32 @@ export class MaskCreatorComponent implements AfterViewInit {
 
     if (!this.canvas) return;
 
-    // Get displayed (CSS) size and scale the internal pixel buffer for devicePixelRatio
-    const rect = this.canvas.getBoundingClientRect();
+    // Determine canvas size based on screen width
+    const screenWidth = window.innerWidth;
+    const canvasSize = screenWidth < 768 ? 310 : 440;
+
+    // Get devicePixelRatio for high-DPI displays
     const dpr = window.devicePixelRatio || 1;
 
-    // remember logical CSS size for drawing coordinates and clearing
-    this.cssWidth = Math.round(rect.width);
-    this.cssHeight = Math.round(rect.height);
+    // Set logical CSS size
+    this.cssWidth = canvasSize;
+    this.cssHeight = canvasSize;
 
-    // ensure the style size matches the computed size (keeps layout stable)
-    this.canvas.style.width = `${this.cssWidth}px`;
-    this.canvas.style.height = `${this.cssHeight}px`;
+    // Set canvas element CSS display size
+    this.canvas.style.width = `${canvasSize}px`;
+    this.canvas.style.height = `${canvasSize}px`;
 
-    // set actual canvas pixel size and scale context so we can draw using CSS pixels
-    this.canvas.width = Math.round(this.cssWidth * dpr);
-    this.canvas.height = Math.round(this.cssHeight * dpr);
+    // Set actual canvas pixel buffer size (scale by DPR)
+    this.canvas.width = canvasSize * dpr;
+    this.canvas.height = canvasSize * dpr;
 
     this.context = this.canvas.getContext('2d')!;
-    // scale drawing operations to map CSS pixels to device pixels
-    this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // Scale context to handle DPR so drawing coordinates match CSS pixels
+    this.context.scale(dpr, dpr);
     // ensure default composite mode
     this.context.globalCompositeOperation = 'source-over';
 
-    // Set white background (use CSS pixel sizes because context is scaled)
+    // Set white background (use CSS pixel sizes)
     this.context.fillStyle = '#ffffff';
     this.context.fillRect(0, 0, this.cssWidth, this.cssHeight);
 
