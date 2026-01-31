@@ -1,6 +1,4 @@
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.SwaggerUI;
-using Microsoft.OpenApi.Models;
+using Masquerade_GGJ_2026.Orchestrators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +22,10 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials();
     });
-});
+}); 
+
+builder.Services.AddScoped<GameOrchestrator>();
+builder.Services.AddScoped<GameNotifier>();
 
 var app = builder.Build();
 

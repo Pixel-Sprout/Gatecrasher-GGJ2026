@@ -16,7 +16,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 Context.Items["username"] = username;
                 clients.Add(Context.ConnectionId, username);
                 log.LogInformation("User connected: {Username}, ConnectionId: {ConnectionId}", username, Context.ConnectionId);
-                Clients.Caller.SendAsync($"Aktywni użytkownicy: {string.Join(", ", clients.Values)}");
+                await Clients.Caller.SendAsync($"Aktywni użytkownicy: {string.Join(", ", clients.Values)}");
             }
 
             await Clients.All.SendAsync("UserJoined", Context.ConnectionId, username);

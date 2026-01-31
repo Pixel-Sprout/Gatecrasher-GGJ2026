@@ -24,7 +24,7 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
         <label>GameId: <input [(ngModel)]="gameId"/></label>
         <button (click)="joinGame()">JoinGame</button>
         <button (click)="leaveGame()">LeaveGame</button>
-        <button (click)="triggerPhase()">Invoke PhaseChanged</button>
+        <button (click)="ready()">Ready</button>
         <!-- added button to request all game ids -->
         <button (click)="getAllGameIds()">GetAllGameIds</button>
       </fieldset>
@@ -35,6 +35,12 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
         <button (click)="submitDrawing()">Submit Drawing</button>
       </fieldset>
 
+      <fieldset style="margin:8px 0;padding:8px">
+        <legend>Votes</legend>
+        <label>Selected player id: <input [(ngModel)]="selectedPlayerId" style="width:360px"/></label>
+        <button (click)="submitVote()">Submit Vote</button>
+      </fieldset>
+
       <div style="margin-top:12px">
         <strong>Log:</strong>
         <pre style="height:260px;overflow:auto;border:1px solid #ccc;padding:8px">{{logs}}</pre>
@@ -43,10 +49,11 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
   `
 })
 export class GameHubTestComponent implements OnDestroy {
-  serverUrl = 'https://localhost:5001';
-  username = 'angular';
+  serverUrl = 'https://localhost:44330';
+  username = 'User 1';
   gameId = '';
   encodedDrawing = '';
+  selectedPlayerId = '';
   logs = '';
 
   private connection?: HubConnection;
@@ -100,6 +107,23 @@ export class GameHubTestComponent implements OnDestroy {
         this.log(`ReceiveAllGameIds: ${JSON.stringify(ids)}`);
       });
 
+      // Additional handlers from server (GameHub / GameNotifier)
+      this.connection.on('PhaseEnded', (phase: any, reason?: string) => {
+        this.log(`PhaseEnded: ${JSON.stringify(phase)} reason=${reason || ''}`);
+      });
+
+      this.connection.on('PlayerIsReady', (connectionId: string, isReady: boolean) => {
+        this.log(`PlayerIsReady: ${connectionId} isReady=${isReady}`);
+      });
+
+      this.connection.on('PlayersInTheRoom', (userNames: string[]) => {
+        this.log(`PlayersInTheRoom: ${JSON.stringify(userNames)}`);
+      });
+
+      this.connection.on('Error', (msg: any) => {
+        this.log(`!!!ERROR!!!: ${JSON.stringify(msg)}`);
+      });
+
       await this.connection.start();
       this.log('Connected to GameHub');
     } catch (e) {
@@ -141,24 +165,51 @@ export class GameHubTestComponent implements OnDestroy {
     }
   }
 
-  async submitDrawing() {
+async submitDrawing() {
     if (!this.connection) { this.log('Not connected'); return; }
     try {
-      await this.connection.invoke('DrawingReady', this.encodedDrawing);
-      this.log(`Invoke DrawingReady (encoded length ${this.encodedDrawing?.length || 0})`);
+        const playerId = (this.connection as any).connectionId;
+        if (!playerId) { this.log('No playerId available'); return; }
+
+        const url = `${this.serverUrl.replace(/\/$/, '')}/Game/${encodeURIComponent(this.gameId)}/${encodeURIComponent(playerId)}/drawing`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.encodedDrawing || '')
+        });
+
+        if (!res.ok) {
+            const txt = await res.text();
+            this.log(`UploadDrawing failed: ${res.status} ${txt}`);
+            return;
+        }
+
+        this.log(`Uploaded drawing to ${url}`);
     } catch (e) {
-      this.log('DrawingReady error: ' + (e as any));
+        this.log('UploadDrawing error: ' + (e as any));
+    }
+}
+
+  async submitVote() {
+    if (!this.connection) { this.log('Not connected'); return; }
+    try {
+      // GameHub exposes CastVote for submitting a selected player id.
+      // Reuse the encodedDrawing input as the selectedPlayerId here.
+      await this.connection.invoke('CastVote', this.selectedPlayerId);
+      this.log(`Invoke CastVote(${this.selectedPlayerId})`);
+    } catch (e) {
+      this.log('CastVote error: ' + (e as any));
     }
   }
 
-  async triggerPhase() {
+  async ready() {
     if (!this.connection) { this.log('Not connected'); return; }
     try {
-      // Attempt to invoke PhaseChanged on server for testing; server expects a GUID
-      await this.connection.invoke('PhaseChanged', this.gameId);
-      this.log(`Invoke PhaseChanged(${this.gameId})`);
+      // Attempt to invoke PlayerReady on server for testing;
+      await this.connection.invoke('PlayerReady');
+      this.log(`Invoke PlayerReady()`);
     } catch (e) {
-      this.log('PhaseChanged error: ' + (e as any));
+      this.log('PlayerReady error: ' + (e as any));
     }
   }
 

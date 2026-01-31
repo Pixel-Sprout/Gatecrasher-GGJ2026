@@ -1,59 +1,18 @@
 ﻿using Masquerade_GGJ_2026.Models;
-using Masquerade_GGJ_2026.Models.Messages;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
-    public static class GameOrchestrator
+    public class GameOrchestrator
     {
-        public static Random random = new Random();
-        public static List<Game> Games = new() { new Game() };
+        private readonly Random _random = new Random();
+        private readonly GameNotifier _notifier;
 
-        public static ScoreboardMessage CreateScoreboardMessage(Game game)
+        public GameOrchestrator(GameNotifier notifier)
         {
-            return new ScoreboardMessage
-            {
-                Players = game.Players
-            };
+            _notifier = notifier;
         }
 
-        public static VotingMessage CreateVotingMessage(Game game)
-        {
-            return new VotingMessage
-            {
-                Masks = game.Players.Select(p => (p.Username, p.EncodedMask)).ToList()
-            };
-        }
-
-        public static DrawingMessage CreateDrawingMessage(Game game, bool isPlayerEvil)
-        {
-            var message = new DrawingMessage
-            {
-                IsPlayerEvil = isPlayerEvil,
-            };
-
-            for (int i = 0; i != (isPlayerEvil ? 2 : 4); i++)
-            {
-                int index;
-                string selectedDescription;
-                do
-                {
-                    index = random.Next(game.AllMaskRequirements.Count);
-                    selectedDescription = game.AllMaskRequirements[index];
-                } while (message.MaskDescriptions.Contains(selectedDescription));
-                message.MaskDescriptions.Add(selectedDescription);
-            }
-            return message;
-        }
-
-        public static LobbyMessage CreateLobbyMessage(Game game)
-        {
-            return new LobbyMessage
-            {
-                Players = game.Players
-            };
-        }
-
-        public static void GenerateNewMaskRequirements(Game game)
+        public void GenerateNewMaskRequirements(Game game)
         {
             var maskDescriptions = new List<string>
             {
@@ -83,17 +42,93 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 "A mask bearing smudges of charcoal and whimsical, hurried doodles."
             };
 
-            for (int i = 0; i != 6; i++)
+            for (int i = 0; i != game.TotalNumberOfRequirements; i++)
             {
                 int index;
                 string selectedDescription;
                 do
                 {
-                    index = random.Next(maskDescriptions.Count);
+                    index = _random.Next(maskDescriptions.Count);
                     selectedDescription = maskDescriptions[index];
                 } while (game.AllMaskRequirements.Contains(selectedDescription));
                 game.AllMaskRequirements.Add(selectedDescription);
             }
+        }
+
+        public async Task NextPhase(Game game)
+        {
+            var phaseDetails = game.PhaseDetails;
+            phaseDetails.PhaseCts?.Cancel();
+            phaseDetails.PhaseCts = new CancellationTokenSource();
+
+            phaseDetails.NextPhase();
+            game.Players.ForEach(p => p.IsReady = false);
+
+            switch (phaseDetails.CurrentPhase)
+            {
+                case RoundPhase.Lobby:
+                    phaseDetails.PhaseEndsAt = null;
+                    game.Players.ForEach(p => p.EncodedMask = null);
+                    game.Players.ForEach(p => p.VotedPlayerId = null);
+                    break;
+                case RoundPhase.Drawing:
+                    GenerateNewMaskRequirements(game);
+                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(phaseDetails.DrawingTimeSeconds);
+                    _ = EndPhaseAfterTimeout(game, phaseDetails.DrawingTimeSeconds, phaseDetails.PhaseCts.Token);
+                    break;
+                case RoundPhase.Voting:
+                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(phaseDetails.VotingTimeSeconds);
+                    _ = EndPhaseAfterTimeout(game, phaseDetails.VotingTimeSeconds, phaseDetails.PhaseCts.Token);
+                    break;
+                case RoundPhase.Scoreboard:
+                    GrantPoints(game);
+                    phaseDetails.PhaseEndsAt = null;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            await _notifier.PhaseChanged(game);
+        }
+
+        private void GrantPoints(Game game)
+        {
+            var badPlayer = game.Players.First(p => p.IsEvil);
+            var kickedPlayerId = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count()).First().Key;
+            foreach (var player in game.Players)
+            {
+                if (player != badPlayer)
+                {
+                    if (player.VotedPlayerId == badPlayer.ConnectionId)
+                    {
+                        player.Score += 5;
+                    }
+                    if (badPlayer.ConnectionId == kickedPlayerId)
+                    {
+                        player.Score += 5;
+                    }
+                }
+                if (player == badPlayer && kickedPlayerId != badPlayer.ConnectionId)
+                {
+                    badPlayer.Score += 20;
+                }
+            }
+        }
+
+        async Task EndPhaseAfterTimeout(Game game, int delayInSeconds, CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(delayInSeconds), token);
+                EndPhase(game, "Timeout");
+            }
+            catch (TaskCanceledException) { }
+        }
+
+        public async Task EndPhase(Game game, string reason)
+        {
+            await _notifier.EndPhase(game, reason);
+            await NextPhase(game);
         }
     }
 }

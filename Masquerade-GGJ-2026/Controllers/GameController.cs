@@ -1,4 +1,5 @@
-﻿using Masquerade_GGJ_2026.Orchestrators;
+﻿using Masquerade_GGJ_2026.Models;
+using Masquerade_GGJ_2026.Orchestrators;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Masquerade_GGJ_2026.Controllers
@@ -7,11 +8,15 @@ namespace Masquerade_GGJ_2026.Controllers
     [Route("[controller]")]
     public class GameController : ControllerBase
     {
+        private readonly GameNotifier _notifier;
         private readonly ILogger<GameController> _logger;
+        private readonly GameOrchestrator _orchestrator;
 
-        public GameController(ILogger<GameController> logger)
+        public GameController(ILogger<GameController> logger, GameNotifier notifier, GameOrchestrator orchestrator)
         {
+            _notifier = notifier;
             _logger = logger;
+            _orchestrator = orchestrator;
         }
 
         [HttpPost("{gameId}/{playerId}/drawing")]
@@ -27,11 +32,17 @@ namespace Masquerade_GGJ_2026.Controllers
                 return BadRequest(new { error = "playerId is required." });
             }
 
-            var game = GameOrchestrator.Games.FirstOrDefault(g => g.GameId == gameGuid);
+            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameGuid);
             if (game is null)
             {
                 return NotFound(new { error = "Game not found." });
             }
+
+            if (game.PhaseDetails.CurrentPhase != Models.RoundPhase.Drawing)
+            {
+                return BadRequest(new { error = "Drawings can only be sent during the Drawing phase." });
+            }
+
             var player = game.Players.FirstOrDefault(p => p.ConnectionId == playerId);
             if (player is null)
             {
@@ -47,7 +58,6 @@ namespace Masquerade_GGJ_2026.Controllers
             {
                 player.EncodedMask = encodedDrawing;
                 _logger.LogInformation("Saved drawing for player {PlayerId}", playerId);
-
                 return Ok();
             }
             catch (Exception ex)
@@ -70,13 +80,13 @@ namespace Masquerade_GGJ_2026.Controllers
             //    return BadRequest(new { error = "playerId is required." });
             //}
 
-            var game = GameOrchestrator.Games.FirstOrDefault(g => g.GameId == gameGuid);
+            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameGuid);
             if (game is null)
             {
                 return NotFound(new { error = "Game not found." });
             }
 
-            if(game.CurrentPhase != Models.RoundPhase.Voting)
+            if(game.PhaseDetails.CurrentPhase != Models.RoundPhase.Voting)
             {
                 return BadRequest(new { error = "Drawings can only be retrieved during the Voting phase." });
             }
