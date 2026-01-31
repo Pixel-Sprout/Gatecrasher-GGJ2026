@@ -1,4 +1,5 @@
 // ...existing code...
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SignalrService } from '../services/signalr.service';
@@ -23,9 +24,11 @@ import { SignalrService } from '../services/signalr.service';
   `
 })
 export class SignalrTestComponent {
+  serverUrl = 'https://localhost:44330';
   username = 'angular';
   logs = '';
 
+  constructor(private svc: SignalrService, private cdr: ChangeDetectorRef) {
     this.svc.onUserJoined().subscribe(evt => this.log(`UserJoined: ${evt.connectionId} ${evt.username}`));
     this.svc.onUserLeft().subscribe(evt => this.log(`UserLeft: ${evt.connectionId} ${evt.username}`));
     this.svc.onReceiveMessage().subscribe(msg => this.log(`ReceiveMessage: ${msg}`));
@@ -33,6 +36,7 @@ export class SignalrTestComponent {
 
   private log(msg: string) {
     this.logs += msg + '\n';
+    this.cdr.detectChanges();
   }
 
   async connect() {
@@ -57,6 +61,7 @@ export class SignalrTestComponent {
     const text = prompt('Message', 'test from angular');
     if (!text) return;
     try {
+      this.svc.sendMessage(text);
       this.log('Sent: ' + text + ' (reply after 15s)');
     } catch (e) {
       this.log('Send error: ' + e);

@@ -4,8 +4,9 @@ namespace Masquerade_GGJ_2026.Hubs
     using System;
     using System.Threading.Tasks;
 
-    public class EchoHub : Hub
+    public class EchoHub(ILogger<EchoHub> log) : Hub
     {
+        public static IDictionary<string, string> clients = new Dictionary<string, string>();
         public override async Task OnConnectedAsync()
         {
             var httpContext = Context.GetHttpContext();
@@ -13,7 +14,9 @@ namespace Masquerade_GGJ_2026.Hubs
             if (!string.IsNullOrEmpty(username))
             {
                 Context.Items["username"] = username;
+                clients.Add(Context.ConnectionId, username);
                 log.LogInformation("User connected: {Username}, ConnectionId: {ConnectionId}", username, Context.ConnectionId);
+                Clients.Caller.SendAsync($"Aktywni użytkownicy: {string.Join(", ", clients.Values)}");
             }
 
             await Clients.All.SendAsync("UserJoined", Context.ConnectionId, username);
@@ -30,9 +33,11 @@ namespace Masquerade_GGJ_2026.Hubs
 
         public async Task SendMessage(string message)
         {
-            // odpowiedź po 15 sekundach tylko do nadawcy
+            // odpowied� po 15 sekundach tylko do nadawcy
+            log.LogInformation("Received message from {ConnectionId}: {Message}", Context.ConnectionId, message);
             await Task.Delay(15_000);
-            await Clients.Caller.SendAsync("ReceiveMessage", message);
+            await Clients.All.SendAsync("ReceiveMessage", message);
+            log.LogInformation("Sent message from {ConnectionId}: {Message}", Context.ConnectionId, message);
         }
     }
 }
