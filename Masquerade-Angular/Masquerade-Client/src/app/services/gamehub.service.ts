@@ -103,4 +103,9 @@ export class GameHubService {
     if (!this.connection) throw new Error('Not connected');
     await this.connection.invoke('PlayerReady');
   }
+
+  async castVote(selectedPlayerId: string) {
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.invoke('CastVote', selectedPlayerId);
+  }
 }

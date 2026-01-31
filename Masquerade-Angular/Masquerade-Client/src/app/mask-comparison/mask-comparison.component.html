@@ -39,7 +39,7 @@
     <div class="voting-summary-section">
       <h2>Voting Status</h2>
       <div class="players-voting-list">
-        @for ( player of votingPlayers; track player.id ) {
+        @for ( player of votingPlayers(); track player.id ) {
           <div 
             class="voting-player-item"
             [class.voted]="player.hasVoted">
@@ -67,7 +67,7 @@
       <div class="summary-stats">
         <div class="stat-item">
           <span class="stat-label">Voted:</span>
-          <span class="stat-value">{{ votedCount }}/{{ votingPlayers.length }}</span>
+          <span class="stat-value">{{ votedCount }}/{{ votingPlayers().length }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">Progress:</span>
@@ -81,10 +81,9 @@
 
   <!-- Footer / Actions -->
   <div class="mask-comparison-footer">
-    <button class="btn btn-skip" (click)="skipVote()">Skip Vote</button>
     <button 
       class="btn btn-vote" 
-      (click)="submitVote()"
+      (click)="toggleReady()"
       [disabled]="selectedMaskId === null">
       Submit Vote
     </button>

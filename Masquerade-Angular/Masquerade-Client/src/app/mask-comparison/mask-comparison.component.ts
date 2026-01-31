@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
+import { GameHubService } from '../services/gamehub.service';
 
 interface PlayerMask {
   id: string;
@@ -12,7 +13,7 @@ interface PlayerMask {
 
 interface VotingPlayer {
   id: string;
-  name: string;
+  name?: string | null;
   role: string;
   hasVoted: boolean;
 }
@@ -26,44 +27,53 @@ interface VotingPlayer {
 })
 export class MaskComparisonComponent implements OnInit {
   playerMasks: PlayerMask[] = [];
-  votingPlayers: VotingPlayer[] = [];
+  votingPlayers = signal<VotingPlayer[]>([]);
   selectedMaskId: string | null = null;
-  currentPlayerId = 'player1';
 
   get votedCount(): number {
-    return this.votingPlayers.filter(p => p.hasVoted).length;
+    return this.votingPlayers().filter(p => p.hasVoted).length;
   }
 
   get progressPercentage(): number {
-    if (this.votingPlayers.length === 0) return 0;
-    return (this.votedCount / this.votingPlayers.length) * 100;
+    if (this.votingPlayers().length === 0) return 0;
+    return (this.votedCount / this.votingPlayers().length) * 100;
   }
 
   private appState = inject(AppStateService);
+  private svc = inject(GameHubService);
 
   ngOnInit(): void {
     this.loadPlayerMasks();
-    this.initializeVotingPlayers();
+    
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
+      setTimeout(() => {
+        this.appState.setState(phase as GameState, message);
+      }, 800)
+    );
+
+    this.svc.onReceivePlayersInTheRoom().subscribe(msg => 
+      this.votingPlayers.set(msg.map((player, i) => ({ id: player.connectionId, name: player.username, role: 'Mask Maker', hasVoted: player.isReady })))
+    );
   }
 
   private loadPlayerMasks(): void {
     // Try loading masks saved in localStorage (saved by mask-creator)
-    try {
-      const stored = JSON.parse(localStorage.getItem('masquerade_masks') || '[]');
-      if (Array.isArray(stored) && stored.length > 0) {
-        this.playerMasks = stored.map((m: any) => ({
-          id: m.id,
-          playerName: m.playerName || 'Player',
-          playerRole: m.playerRole || 'Mask Maker',
-          imageData: m.imageData
-        } as PlayerMask));
-      } else {
-        this.playerMasks = [];
-      }
-    } catch (e) {
-      console.warn('Could not read masks from localStorage', e);
-      this.playerMasks = [];
-    }
+    // try {
+    //   const stored = JSON.parse(localStorage.getItem('masquerade_masks') || '[]');
+    //   if (Array.isArray(stored) && stored.length > 0) {
+    //     this.playerMasks = stored.map((m: any) => ({
+    //       id: m.id,
+    //       playerName: m.playerName || 'Player',
+    //       playerRole: m.playerRole || 'Mask Maker',
+    //       imageData: m.imageData
+    //     } as PlayerMask));
+    //   } else {
+    //     this.playerMasks = [];
+    //   }
+    // } catch (e) {
+    //   console.warn('Could not read masks from localStorage', e);
+    //   this.playerMasks = [];
+    // }
 
     // Ensure we have placeholders for other players if needed
     // Generate a base64 SVG heart placeholder at runtime (fallback to 1x1 PNG if btoa isn't available)
@@ -75,82 +85,28 @@ export class MaskComparisonComponent implements OnInit {
       // fallback small transparent pixel
       placeholder = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     }
-    const requiredIds = ['player1', 'player2', 'player3'];
-    requiredIds.forEach((id, idx) => {
-      if (!this.playerMasks.find(p => p.id === id)) {
-        this.playerMasks.push({
-          id,
-          playerName: id === 'player1' ? 'You' : `Player ${idx + 1}`,
-          playerRole: 'Role 1',
-          imageData: placeholder
+
+    this.appState.votingMessageSignal().masks.forEach((m: any) => {
+      this.playerMasks.push({
+        id: m.player.connectionId,
+        playerName: m.player.username,
+        playerRole: 'Role 1',
+        imageData: m.encodedMask
         });
       }
-    });
-  }
-
-  private initializeVotingPlayers(): void {
-    // TODO: Load from backend or service
-    this.votingPlayers = [
-      {
-        id: 'player1',
-        name: 'Player 1',
-        role: 'Role 1',
-        hasVoted: false
-      },
-      {
-        id: 'player2',
-        name: 'Player 2',
-        role: 'Role 2',
-        hasVoted: false
-      },
-      {
-        id: 'player3',
-        name: 'Player 3',
-        role: 'Role 1',
-        hasVoted: false
-      }
-    ];
+    );
   }
 
   selectMask(maskId: string): void {
     this.selectedMaskId = maskId;
   }
 
-  submitVote(): void {
+  toggleReady(): void {
     if (!this.selectedMaskId) return;
 
     console.log('Vote submitted for mask:', this.selectedMaskId);
     
-    // Mark current player as voted
-    const currentPlayer = this.votingPlayers.find(p => p.id === this.currentPlayerId);
-    if (currentPlayer) {
-      currentPlayer.hasVoted = true;
-    }
-
-    // Navigate to scoring after submitting this user's vote
-    // (the backend/game server would normally decide when to show results;
-    // for now navigate the submitting user immediately)
-    setTimeout(() => {
-      this.appState.setState(GameState.SCORING, null);
-    }, 300);
-  }
-
-  skipVote(): void {
-    console.log('Vote skipped');
-    
-    // Mark current player as voted (even though they skipped)
-    const currentPlayer = this.votingPlayers.find(p => p.id === this.currentPlayerId);
-    if (currentPlayer) {
-      currentPlayer.hasVoted = true;
-    }
-
-    // Navigate to scoring for the current user after skipping
-    setTimeout(() => {
-      this.appState.setState(GameState.SCORING, null);
-    }, 300);
-  }
-
-  get allVoted(): boolean {
-    return this.votingPlayers.length > 0 && this.votingPlayers.every(p => p.hasVoted);
+    this.svc.castVote(this.selectedMaskId);
+    this.svc.ready();
   }
 }
