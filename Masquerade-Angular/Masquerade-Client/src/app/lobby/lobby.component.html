@@ -1,7 +1,7 @@
 <div class="container">
   <!-- Header -->
   <div class="header">
-    <h1>Masquerade - Lobby</h1>
+    <h1>GateCrasher - Lobby</h1>
   </div>
 
   <!-- Main Content Area -->
@@ -37,6 +37,14 @@
         <label>
           <input type="checkbox" name="setting3" />
           Auto-start when ready
+        </label>
+        <label>
+          Share Lobby Link:
+          <input type="text" value="{{joinUrl()}}" #shareInput/>
+          <button (click)="copyToClipboard(shareInput.value)">Copy</button>
+        </label>
+        <label>
+          <qrcode [qrdata]="joinUrl()" [width]="150" [errorCorrectionLevel]="'M'"></qrcode>
         </label>
       </div>
     </div>

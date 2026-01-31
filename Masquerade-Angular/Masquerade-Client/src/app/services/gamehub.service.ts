@@ -64,13 +64,7 @@ export class GameHubService {
     });
 
     this.connection.on('ReceiveAllGameIds', (rooms: GameRoom[]) => {
-      console.log(rooms)
       this.receiveGameRooms$.next(rooms);
-      // Set first id as current gameId
-      /*if (rooms.length > 0) {
-        this.gameId = rooms[0].gameId;
-        this.joinGame();
-      }*/
     });
 
     this.connection.on('PlayersInTheRoom', (players: UserEvent[]) => {

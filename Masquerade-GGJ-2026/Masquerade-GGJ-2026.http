@@ -1,6 +1,0 @@
-@Masquerade_GGJ_2026_HostAddress = http://localhost:5183
-
-GET {{Masquerade_GGJ_2026_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -1,10 +1,11 @@
-import {Component, inject, signal, OnInit, OnDestroy} from '@angular/core';
+import {Component, inject, signal, OnInit, OnDestroy, Inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {GameHubService, GameRoom} from '../services/gamehub.service';
 import {AppStateService} from '../services/app-state.service';
 import {GameState} from '../types/game-state.enum';
+import { WINDOW } from '../window.provider';
 
 @Component({
   selector: 'app-user-select',
@@ -23,11 +24,22 @@ export class UserSelectComponent implements OnInit, OnDestroy {
   connected = signal<boolean>(false);
   newRoomName = '';
   errorMessage = signal<string | null>(null);
+  requestedRoomId: string = "";
 
   private subs = new Subscription();
 
+  constructor(@Inject(WINDOW) private window: Window) {
+    this.requestedRoomId = window.location.search.substring(1).trim();
+    console.log(this.requestedRoomId);
+  }
   ngOnInit(): void {
     const s = this.svc.receiveGameRooms$.subscribe(rooms => {
+      var reqestedRoom = rooms.find(r => r.gameId == this.requestedRoomId);
+      if(reqestedRoom){
+        console.log("got room", reqestedRoom);
+        this.joinRoom(reqestedRoom);
+      }
+
       this.roomsSource.next(rooms);
     });
     this.subs.add(s);
@@ -86,5 +98,4 @@ export class UserSelectComponent implements OnInit, OnDestroy {
   trackByGameId(index: number, room: GameRoom) {
     return room?.gameId ?? index;
   }
-
 }

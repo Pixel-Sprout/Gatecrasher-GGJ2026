@@ -18,4 +18,12 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="WeatherForecast.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Masquerade-GGJ-2026.http" />
+  </ItemGroup>
+
 </Project>
