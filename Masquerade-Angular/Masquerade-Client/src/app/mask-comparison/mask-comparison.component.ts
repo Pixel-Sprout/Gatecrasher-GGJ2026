@@ -69,7 +69,7 @@ export class MaskComparisonComponent implements OnInit, OnDestroy {
     );
 
     this.svc.onReceivePlayersInTheRoom().subscribe(msg =>
-      this.votingPlayers.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: 'Mask Maker', hasVoted: player.isReady })))
+      this.votingPlayers.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: msg[0].userId == player.userId ? 'Admin' : 'Mask Maker', hasVoted: player.isReady })))
     );
 
 
@@ -136,13 +136,13 @@ export class MaskComparisonComponent implements OnInit, OnDestroy {
       this.playerMasks.push({
         id: m.player.userId,
         playerName: m.player.username,
-        playerRole: 'Role 1',
+        playerRole: this.appState.votingMessageSignal().masks[0] == m ? 'Admin' : 'Mask Maker',
         imageData: m.encodedMask
         });
       this.votingPlayers().push({
         id: m.player.userId,
         name: m.player.username,
-        role: 'Role 1',
+        role: this.appState.votingMessageSignal().masks[0] == m ? 'Admin' : 'Mask Maker',
         hasVoted: m.player.isReady
         });
     });

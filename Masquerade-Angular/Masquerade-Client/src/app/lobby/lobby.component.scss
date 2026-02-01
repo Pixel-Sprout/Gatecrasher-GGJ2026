@@ -71,6 +71,11 @@
     padding: 4px 12px;
     border-radius: 4px;
     font-size: 12px;
+
+      &.admin {
+        font-weight: bold;
+        background-color: #f39c12;
+    }
   }
 
   .ready-status {
