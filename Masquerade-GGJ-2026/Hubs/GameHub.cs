@@ -228,7 +228,9 @@ namespace Masquerade_GGJ_2026.Hubs
                     await _notifier.SendPlayersInRoom(game);
                     _log.LogInformation("Player {Username} in Game {GameId} is ready={ready}", player.Username, gameIdGuid, player.IsReady);
                     // Check if all players are ready
-                    if (game.Players.All(p => p.Player.IsReady || p.Player.IsRemoved))
+                    var nonRemovedPlayers = game.Players.Where(p => !p.Player.IsRemoved).ToArray();
+                    if (nonRemovedPlayers.All(p => p.Player.IsReady) && 
+                        (game.PhaseDetails.CurrentPhase != RoundPhase.Lobby || nonRemovedPlayers.Length >= 3))
                     {
                         if (game.PhaseDetails.CurrentPhase == RoundPhase.Lobby)
                         {
