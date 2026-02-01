@@ -119,7 +119,8 @@
 .settings-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 12px;  
+  padding-bottom: 10px;
 
   label {
     display: flex;

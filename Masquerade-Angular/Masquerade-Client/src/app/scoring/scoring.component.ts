@@ -39,19 +39,19 @@ export class ScoringComponent implements OnInit {
     );
 
     this.svc.onReceivePlayersInTheRoom().subscribe(msg => {
-      this.players().forEach(p => p.isReady = msg.filter(m => m.connectionId == p.id)[0].isReady) 
+      this.players().forEach(p => p.isReady = msg.filter(m => m.userId == p.id)[0].isReady) 
       this.scoreboard; }
     );
 
     this.appState.scoringMessageSignal().players.forEach((p: any) => {
       this.players().push({
-        id: p.player.connectionId,
+        id: p.player.userId,
         name: p.player.username,
         role: 'Role 1',
         score: p.score,
         selectedDifferentMaskId: p.votedPlayerId,
         isReady: p.player.isReady,
-        approved: p.votedPlayerId === null ? true : p.votedPlayerId === p.player.connectionId // for demo purposes
+        approved: p.votedPlayerId === null ? true : p.votedPlayerId === p.player.userId // for demo purposes
         });
       }
     );

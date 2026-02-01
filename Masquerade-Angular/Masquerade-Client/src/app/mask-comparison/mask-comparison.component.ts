@@ -52,7 +52,7 @@ export class MaskComparisonComponent implements OnInit {
     );
 
     this.svc.onReceivePlayersInTheRoom().subscribe(msg => 
-      this.votingPlayers.set(msg.map((player, i) => ({ id: player.connectionId, name: player.username, role: 'Mask Maker', hasVoted: player.isReady })))
+      this.votingPlayers.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: 'Mask Maker', hasVoted: player.isReady })))
     );
   }
 
@@ -68,13 +68,13 @@ export class MaskComparisonComponent implements OnInit {
 
     this.appState.votingMessageSignal().masks.forEach((m: any) => {
       this.playerMasks.push({
-        id: m.player.connectionId,
+        id: m.player.userId,
         playerName: m.player.username,
         playerRole: 'Role 1',
         imageData: m.encodedMask
         });
       this.votingPlayers().push({
-        id: m.player.connectionId,
+        id: m.player.userId,
         name: m.player.username,
         role: 'Role 1',
         hasVoted: m.player.isReady  

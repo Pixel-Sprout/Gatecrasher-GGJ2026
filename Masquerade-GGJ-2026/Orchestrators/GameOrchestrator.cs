@@ -64,7 +64,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 "A mask that feels quiet and watchful.",
             };
 
-            for (int i = 0; i != game.TotalNumberOfRequirements; i++)
+            for (int i = 0; i != game.Settings.TotalNumberOfRequirements; i++)
             {
                 int index;
                 string selectedDescription;
@@ -95,12 +95,12 @@ namespace Masquerade_GGJ_2026.Orchestrators
                     break;
                 case RoundPhase.Drawing:
                     GenerateNewMaskRequirements(game);
-                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(phaseDetails.DrawingTimeSeconds);
-                    _ = EndPhaseAfterTimeout(game, phaseDetails.DrawingTimeSeconds, phaseDetails.PhaseCts.Token);
+                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(game.Settings.DrawingTimeSeconds);
+                    _ = EndPhaseAfterTimeout(game, game.Settings.DrawingTimeSeconds, phaseDetails.PhaseCts.Token);
                     break;
                 case RoundPhase.Voting:
-                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(phaseDetails.VotingTimeSeconds);
-                    _ = EndPhaseAfterTimeout(game, phaseDetails.VotingTimeSeconds, phaseDetails.PhaseCts.Token);
+                    phaseDetails.PhaseEndsAt = DateTime.UtcNow.AddSeconds(game.Settings.VotingTimeSeconds);
+                    _ = EndPhaseAfterTimeout(game, game.Settings.VotingTimeSeconds, phaseDetails.PhaseCts.Token);
                     break;
                 case RoundPhase.Scoreboard:
                     GrantPoints(game);

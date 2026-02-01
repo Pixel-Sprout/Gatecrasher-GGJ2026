@@ -15,6 +15,12 @@ interface Player {
   ready: boolean;
 }
 
+interface LobbySettings {
+  drawingTimeSeconds: number;
+  votingTimeSeconds: number;
+  rounds: number;
+}
+
 @Component({
   selector: 'app-lobby',
   standalone: true,
@@ -25,7 +31,7 @@ interface Player {
 export class LobbyComponent implements OnInit {
   public players = signal<Player[]>([]);
   public joinUrl = signal<string>("")
-  currentPlayerId = 'player1';
+  public currentPlayerId = 'player1';
   currentPlayerReady = false;
   private appState = inject(AppStateService);
   private svc = inject(GameHubService);
@@ -39,23 +45,28 @@ export class LobbyComponent implements OnInit {
     console.log(this.svc.gameId);
     this.joinUrl.set(this.locator.getRoomJoinUrl(this.svc.gameId))
     this.svc.onReceivePlayersInTheRoom().subscribe(msg =>
-      this.players.set(msg.map((player, i) => ({ id: player.connectionId, name: player.username, role: 'Mask Maker', ready: player.isReady }))
+      this.players.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: 'Mask Maker', ready: player.isReady }))
       ));
     this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
     );
+    this.svc.onReceiveGameSettingsUpdated().subscribe((settings) => {
+      this.applySettings(settings);
+    });
 
     this.appState.lobbyMessageSignal().players.forEach((p: any) => {
         this.players().push({
-          id: p.connectionId,
+          id: p.userId,
           name: p.username,
           role: 'Role 1',
           ready: p.isReady,
         });
       }
     );
+
+    this.applySettings(this.appState.lobbyMessageSignal().settings);
   }
 
   toggleReady(): void {
@@ -74,4 +85,28 @@ export class LobbyComponent implements OnInit {
   copyToClipboard(url: string) {
     this.window.navigator.clipboard.writeText(url);
   }
+
+  // Apply settings received from backend (call this from your subscription)
+  applySettings(settings: LobbySettings) {
+    if (!settings) return;
+    this.timeToDraw.set(settings.drawingTimeSeconds ?? this.timeToDraw());
+    this.timeToVote.set(settings.votingTimeSeconds ?? this.timeToVote());
+    this.rounds.set(settings.rounds ?? this.rounds());
+  }
+
+  // Send current settings to backend (implement server handler)
+  saveSettings(): void {
+    const payload: LobbySettings = {
+      drawingTimeSeconds: this.timeToDraw(),
+      votingTimeSeconds: this.timeToVote(),
+      rounds: this.rounds(),
+    };
+    this.svc.updateGameSettings(payload);
+    console.log('Lobby settings saved:', payload);
+  }
+
+  // New settings signals (defaults)
+  public timeToDraw = signal<number>(60);
+  public timeToVote = signal<number>(30);
+  public rounds = signal<number>(3);
 }

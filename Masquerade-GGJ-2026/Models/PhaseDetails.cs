@@ -5,14 +5,10 @@
         public RoundPhase CurrentPhase { get; set; }
         public DateTime? PhaseEndsAt { get; set; }
         public CancellationTokenSource? PhaseCts { get; set; }
-        public int DrawingTimeSeconds { get; set; }
-        public int VotingTimeSeconds { get; set; }
 
-        public PhaseDetails(int drawingTimeSeconds, int votingTimeSeconds)
+        public PhaseDetails()
         {
             CurrentPhase = RoundPhase.UserSelect;
-            DrawingTimeSeconds = drawingTimeSeconds;
-            VotingTimeSeconds = votingTimeSeconds;
         }
 
         public void NextPhase()

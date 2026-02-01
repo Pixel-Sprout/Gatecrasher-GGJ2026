@@ -2,6 +2,7 @@
 using Masquerade_GGJ_2026.Models;
 using Masquerade_GGJ_2026.Models.Messages;
 using Microsoft.AspNetCore.SignalR;
+using System.Diagnostics;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
@@ -118,7 +119,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 PhaseEndsAt = game.PhaseDetails.PhaseEndsAt!.Value,
             };
 
-            for (int i = 0; i != (isPlayerEvil ? game.BadPlayerNumberOfRequirements : game.GoodPlayerNumberOfRequirements); i++)
+            for (int i = 0; i != (isPlayerEvil ? game.Settings.BadPlayerNumberOfRequirements : game.Settings.GoodPlayerNumberOfRequirements); i++)
             {
                 int index;
                 string selectedDescription;
@@ -136,7 +137,8 @@ namespace Masquerade_GGJ_2026.Orchestrators
         {
             return new LobbyMessage
             {
-                Players = game.Players.Select(p => p.Player).ToList()
+                Players = game.Players.Where(p => !p.Player.IsRemoved).Select(p => p.Player).ToList(),
+                Settings = game.Settings
             };
         }
 
@@ -155,6 +157,11 @@ namespace Masquerade_GGJ_2026.Orchestrators
         public async Task SendExceptionMessage(Game game, string message, string stackTrace)
         {
             await _hub.Clients.Group(game.GameId.ToString()).SendAsync("ExceptionMessage", message, stackTrace);
+        }
+
+        public async Task GameSettingsUpdated(Game game)
+        {
+            await _hub.Clients.Group(game.GameId.ToString()).SendAsync("GameSettingsUpdated", game.Settings);
         }
     }
 }

@@ -5,5 +5,6 @@
     public class LobbyMessage
     {
         public List<Player> Players { get; set; } = new();
+        public required GameSettings Settings { get; set; }
     }
 }

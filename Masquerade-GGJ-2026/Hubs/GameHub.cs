@@ -292,5 +292,31 @@ namespace Masquerade_GGJ_2026.Hubs
             await _notifier.SendPlayersInRoom(game);
         }
 
+        public async Task UpdateGameSettings(GameSettings settings)
+        {
+            var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
+            if (!Guid.TryParse(gameId, out Guid gameIdGuid))
+            {
+                return;
+            }
+            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameIdGuid);
+            if (game != null)
+            {
+                var player = (Player?)Context.Items["player"];
+                if (player != null)
+                {
+                    //Check if player is top player
+                    if (game.Players.First(x => !x.Player.IsRemoved).Player != player)
+                    {
+                        return;
+                    }
+                    game.Settings.DrawingTimeSeconds = settings.DrawingTimeSeconds;
+                    game.Settings.VotingTimeSeconds = settings.VotingTimeSeconds;
+                    game.Settings.Rounds = settings.Rounds;
+                    await _notifier.GameSettingsUpdated(game);
+                }
+            }
+        }
+
     }
 }

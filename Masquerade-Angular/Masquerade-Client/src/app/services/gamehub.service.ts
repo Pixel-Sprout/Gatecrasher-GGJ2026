@@ -6,7 +6,7 @@ import { GameState } from '../types/game-state.enum';
 import { EndpointLocator } from './EndpointLocator.service';
 
 export interface UserEvent {
-  connectionId: string;
+  userId: string;
   username?: string | null;
   isReady: boolean;
 }
@@ -25,6 +25,7 @@ export class GameHubService {
   private receivePlayersInTheRoom$ = new Subject<UserEvent[]>();
   private receivePhaseChanged$ = new Subject<[GameState, any]>();
   public receiveGameRooms$ = new Subject<GameRoom[]>();
+  public receiveGameSettingsUpdated$ = new Subject<any>();
   public playerId: string = '';
   public playerName: string = '';
   public gameId: string = '';
@@ -40,6 +41,10 @@ export class GameHubService {
 
   onReceivePhaseChanged(): Observable<[GameState, any]> {
     return this.receivePhaseChanged$.asObservable();
+  }
+
+  onReceiveGameSettingsUpdated(): Observable<any> {
+    return this.receiveGameSettingsUpdated$.asObservable();
   }
 
   async connect(username: string, userToken: string | null = null): Promise<boolean> {
@@ -86,6 +91,11 @@ export class GameHubService {
 
     this.connection.on("onUserConnected", (userToken: string) => {
       console.log("User connected with token: " + userToken);
+    });
+
+    this.connection.on("GameSettingsUpdated", (settings: any) => {
+      this.receiveGameSettingsUpdated$.next(settings);
+      console.log("Game settings updated:", settings);
     });
 
     try{
@@ -144,5 +154,10 @@ export class GameHubService {
   async castVote(selectedPlayerId: string) {
     if (!this.connection) throw new Error('Not connected');
     await this.connection.invoke('CastVote', selectedPlayerId);
+  }
+
+  async updateGameSettings(settings: any) {
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.invoke('UpdateGameSettings', settings);
   }
 }

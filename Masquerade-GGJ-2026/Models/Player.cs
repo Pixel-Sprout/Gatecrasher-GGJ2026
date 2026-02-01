@@ -3,7 +3,7 @@
     public class Player
     {
         public required string UserToken { get; set; }
-        public readonly string UserId = Guid.NewGuid().ToString();
+        public string UserId { get; init; } = Guid.NewGuid().ToString();
         public required string ConnectionId { get; set; }
         public string? Username { get; set; }
         public bool IsReady { get; set; }

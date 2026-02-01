@@ -12,7 +12,7 @@
       <div class="players-list">
         @for ( player of players(); track player.id ) {
           <div class="player-item" [class.ready]="player.ready" [class.waiting]="!player.ready">
-            <span class="player-name">{{ player.name }}</span>
+            <span class="player-name">{{ player.name }} {{player.id === currentPlayerId ? '(YOU)' : ''}}</span>
             <span class="player-role">{{ player.role }}</span>
             <span class="ready-status">
               {{ player.ready ? '✓ Ready' : '⏳ Waiting' }}
@@ -28,20 +28,27 @@
 
     <!-- Settings Section -->
     <div class="settings-section">
-      <h3>Settings</h3>
+      <h3>Settings — Draw: {{ timeToDraw() }}s · Vote: {{ timeToVote() }}s
+      </h3>
+      <div *ngIf="players()[0].id === currentPlayerId" class="settings-group">
+        <label>
+          Time to draw (seconds):
+          <input type="number" min="5" [value]="timeToDraw()" #drawInput (input)="timeToDraw.set(drawInput.valueAsNumber)" />
+        </label>
+        <label>
+          Time to vote (seconds):
+          <input type="number" min="5" [value]="timeToVote()" #voteInput (input)="timeToVote.set(voteInput.valueAsNumber)" />
+        </label>
+        <!-- <label>
+          Number of rounds:
+          <input type="number" min="1" [value]="rounds()" #roundsInput (input)="rounds.set(roundsInput.valueAsNumber)" />
+        </label> -->
+
+        <div class="settings-actions">
+          <button (click)="saveSettings()">Save Settings</button>
+        </div>
+      </div>
       <div class="settings-group">
-        <label>
-          <input type="checkbox" name="setting1" />
-          Enable Chat
-        </label>
-        <label>
-          <input type="checkbox" name="setting2" />
-          Enable Timer
-        </label>
-        <label>
-          <input type="checkbox" name="setting3" />
-          Auto-start when ready
-        </label>
         <label>
           Share Lobby Link:
           <input type="text" value="{{joinUrl()}}" #shareInput/>
@@ -51,7 +58,6 @@
           <qrcode [qrdata]="joinUrl()" [width]="150" [errorCorrectionLevel]="'M'"></qrcode>
         </label>
       </div>
-    </div>
  
   </div>
 
