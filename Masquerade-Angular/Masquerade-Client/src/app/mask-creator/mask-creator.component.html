@@ -2,6 +2,17 @@
   <!-- Header -->
   <div class="header">
     <h1>Draw Your Mask</h1>
+
+    <!-- Timer display -->
+    <div class="creator-timer">
+      <div class="timer-row">
+        <span class="timer-label">Time Remaining: </span>
+        <span class="timer-remaining">{{ remainingSeconds() > 0 ? (remainingSeconds() | number:'2.0-0') : '0' }}s</span>
+      </div>
+      <div class="timer-bar">
+        <div class="timer-fill" [style.width.%]="deadlineProgress()"></div>
+      </div>
+    </div>
     
     @if (isBadPlayer()) {
       <img src="imgs/evil_mask.png" class="mask"/> 
