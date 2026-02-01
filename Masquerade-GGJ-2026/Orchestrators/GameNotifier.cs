@@ -2,9 +2,6 @@
 using Masquerade_GGJ_2026.Models;
 using Masquerade_GGJ_2026.Models.Messages;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Numerics;
-using System.Text.RegularExpressions;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
@@ -61,6 +58,9 @@ namespace Masquerade_GGJ_2026.Orchestrators
                     case RoundPhase.Scoreboard:
                         await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, CreateScoreboardMessage(game));
                         break;
+                    case RoundPhase.CutsceneTheChoice:
+                        await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, CreateCutsceneMessage(game));
+                        break;
                     default:
                         await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, null);
                         break;
@@ -73,11 +73,31 @@ namespace Masquerade_GGJ_2026.Orchestrators
             await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PhaseEnded", game.PhaseDetails.CurrentPhase, reason);
         }
 
+
         private ScoreboardMessage CreateScoreboardMessage(Game game)
         {
             return new ScoreboardMessage
             {
                 Players = game.Players
+            };
+        }
+        private CutsceneMessage CreateCutsceneMessage(Game game)
+        {
+            bool shouldPlayAlternativeScene = false;
+
+            switch(game.PhaseDetails.CurrentPhase)
+            {
+                case RoundPhase.CutsceneTheChoice:
+                    var badPlayer = game.Players.First(p => p.IsEvil);
+                    var groupedVotes = game.Players.GroupBy(p => p.VotedPlayerId).ToList();
+                    var kickedPlayers = groupedVotes.Where(g => g.Count() == groupedVotes.Max(x => x.Count())).Select(g => g.Key);
+                    shouldPlayAlternativeScene = kickedPlayers.Count() != 1 || kickedPlayers.Single() != badPlayer.Player.UserId;
+                    break;
+            }
+
+            return new CutsceneMessage
+            {
+                PlayAlternativeCutscene = shouldPlayAlternativeScene
             };
         }
 
