@@ -15,7 +15,7 @@
             <div class="player-avatar">{{ p.name.charAt(0) }}</div>
             <div class="player-meta">
               <div class="player-name">{{ p.name }}</div>
-              <div class="player-role">{{ p.role }}</div>
+              <div class="player-role" [class.admin]="p.role === 'Admin'">{{ p.role }}</div>
             </div>
           </div>
 

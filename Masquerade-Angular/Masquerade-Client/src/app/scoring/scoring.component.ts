@@ -47,7 +47,7 @@ export class ScoringComponent implements OnInit {
       this.players().push({
         id: p.player.userId,
         name: p.player.username,
-        role: 'Role 1',
+        role: this.appState.scoringMessageSignal().players[0] == p.player ? 'Admin' : 'Mask Maker',
         score: p.score,
         selectedDifferentMaskId: p.votedPlayerId,
         isReady: p.player.isReady,

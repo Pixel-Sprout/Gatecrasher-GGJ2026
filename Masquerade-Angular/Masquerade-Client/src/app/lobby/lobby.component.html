@@ -13,7 +13,7 @@
         @for ( player of players(); track player.id ) {
           <div class="player-item" [class.ready]="player.ready" [class.waiting]="!player.ready">
             <span class="player-name">{{ player.name }} {{player.id === currentPlayerId ? '(YOU)' : ''}}</span>
-            <span class="player-role">{{ player.role }}</span>
+            <span class="player-role" [class.admin]="player.role === 'Admin'">{{ player.role }}</span>
             <span class="ready-status">
               {{ player.ready ? '✓ Ready' : '⏳ Waiting' }}
             </span>

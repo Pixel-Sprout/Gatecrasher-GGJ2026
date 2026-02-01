@@ -33,7 +33,7 @@
             
             <div class="mask-info">
               <h3 class="player-name">{{ mask.playerName }}</h3>
-              <p class="player-role">{{ mask.playerRole }}</p>
+              <p class="player-role" [class.admin]="mask.playerRole === 'Admin'">{{ mask.playerRole }}</p>
             </div>
   
             @if (selectedMaskId === mask.id) {
