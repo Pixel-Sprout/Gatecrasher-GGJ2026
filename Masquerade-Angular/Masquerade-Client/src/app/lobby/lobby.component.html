@@ -20,6 +20,10 @@
           </div>
         }
       </div>
+      <div class="insufficient-players-warning"
+           *ngIf="players().length &lt; 3">
+        There must be three or more players to start the game.
+      </div>
     </div>
 
     <!-- Settings Section -->

@@ -176,7 +176,9 @@ namespace Masquerade_GGJ_2026.Hubs
                     await _notifier.SendPlayersInRoom(game);
                     _log.LogInformation("Player {Username} in Game {GameId} is ready", player.Username, gameIdGuid);
                     // Check if all players are ready
-                    if (game.Players.All(p => p.Player.IsReady))
+                    if (game.Players.All(p => p.Player.IsReady)
+                        && (game.PhaseDetails.CurrentPhase != RoundPhase.Lobby 
+                            || game.Players.Count >= 3))
                     {
                         _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", gameIdGuid);
                         await _orchestrator.EndPhase(game, "All players ready");

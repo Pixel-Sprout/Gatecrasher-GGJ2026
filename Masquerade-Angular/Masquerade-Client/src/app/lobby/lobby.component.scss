@@ -91,6 +91,14 @@
   }
 }
 
+.insufficient-players-warning {
+  display: flex;  
+  justify-content: center;
+  color: #e74c3c;
+  font-weight: bold;  
+  margin: 1rem 0;
+}
+
 // Settings Section
 .settings-section {
   flex: 1;
