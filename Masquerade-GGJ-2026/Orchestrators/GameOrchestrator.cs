@@ -119,7 +119,8 @@ namespace Masquerade_GGJ_2026.Orchestrators
             try
             {
                 var badPlayer = game.Players.First(p => p.IsEvil);
-                var kickedPlayers = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count()).Select(x => x.Key);
+                var groupedVotes = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count());
+                var kickedPlayers = groupedVotes.Where(g=>g.Count() == groupedVotes.Max(x=>x.Count())).Select(x => x.Key);
                 if (kickedPlayers.Count() > 1)
                 {
                     //TIE

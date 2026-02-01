@@ -22,6 +22,7 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
 
   public images = signal<string[]>([]);
   public containerFading = false;
+  public isBadEnding = false;
 
   public ngOnInit(): void {
     this.loadFirstImages().then(() => this.startSequence());
@@ -31,6 +32,8 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
         this.appState.setState(phase as GameState, message);
       }, 800)
     );
+
+    this.isBadEnding = this.appState.cutsceneMessageSignal().playAlternativeCutscene
   }
 
   ngOnDestroy(): void {
