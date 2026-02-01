@@ -16,8 +16,8 @@ export class CutsceneOpeningComponent implements OnInit, OnDestroy {
   private svc = inject(GameHubService);
 
   // animation timing (ms)
-  private perImageDuration = 2000; // time between image starts
-  private fadeDuration = 600; // fade-in duration
+  private perImageDuration = 1500; // time between image starts
+  private fadeDuration = 400; // fade-in duration
  
   private timers: any[] = [];
 
@@ -50,7 +50,7 @@ export class CutsceneOpeningComponent implements OnInit, OnDestroy {
 
   // Attempt to load numbered images in order until we have at least 3 or reach maxCheck
   private async loadFirstImages(): Promise<void> {
-    const candidates = ['01-king-invitation.png', '02-the-witch-listens.png', '03-witch-plotting.png', '04-to-the-party.png'];
+    const candidates = ['01-king-invitation.jpg', '02-the-witch-listens.jpg', '03-witch-plotting.jpg', '04-to-the-party.jpg'];
     const base = 'imgs/opening/';
     const foundImages: string[] = [];
 
@@ -85,7 +85,7 @@ export class CutsceneOpeningComponent implements OnInit, OnDestroy {
     // After the sequence finishes, wait 2s then change app state to lobby
     this.timers.push(setTimeout(() => {
       this.svc.ready();
-    }, fadeOutAt + 2000));
+    }, fadeOutAt + 1000));
   }
 
   // helpers used in template

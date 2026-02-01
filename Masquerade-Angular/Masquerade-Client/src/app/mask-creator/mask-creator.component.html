@@ -1,7 +1,13 @@
 <div class="container" [ngClass]="isBadPlayer() ? 'bg-witch-dark' : 'bg-scheme-light'">
   <!-- Header -->
   <div class="header">
-    <h1>Draw Your Mask</h1>
+    <h1>Draw Your Mask <span>
+      @if (isBadPlayer()) {
+        - The Evil Witch
+      } @else {
+        - An Invited Guest
+      }
+    </span></h1>
 
     <!-- Timer display -->
     <div class="creator-timer">

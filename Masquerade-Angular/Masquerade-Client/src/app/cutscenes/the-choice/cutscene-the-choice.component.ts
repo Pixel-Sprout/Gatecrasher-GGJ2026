@@ -16,9 +16,8 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
   private svc = inject(GameHubService);
 
   // animation timing (ms)
-  private perImageDuration = 2200; // time between image starts
-  private fadeDuration = 800; // fade-in duration
-  private fadeOutDuration = 900; // container fade-out duration
+  private perImageDuration = 1500; // time between image starts
+  private fadeDuration = 400; // fade-in duration
   private timers: any[] = [];
 
   public images = signal<string[]>([]);
@@ -54,8 +53,8 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
     const foundImages: string[] = [];
 
     // TODO: use proper ending images based on players' choice / server data
-    const goodEnding = ['good-1-you-chose-witch.png', 'good-2-witch-captured.png', 'good-3-witch-lost.png'];
-    const badEnding = ['bad-1-you-chose-player.png', 'bad-2-witch-attacks.png', 'bad-3-king-dead.png'];
+    const goodEnding = ['good-1-you-chose-witch.jpg', 'good-2-witch-captured.jpg', 'good-3-witch-lost.jpg'];
+    const badEnding = ['bad-1-you-chose-player.jpg', 'bad-2-witch-attacks.jpg', 'bad-3-king-dead.jpg'];
     
     for (const candidate of (this.appState.cutsceneMessageSignal().playAlternativeCutscene ? badEnding : goodEnding)) {
       const fullPath = `${base}${candidate}`;
@@ -87,7 +86,7 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
     // After the sequence finishes, wait 2s then change app state to ballroom
     this.timers.push(setTimeout(() => {
       this.svc.ready();
-    }, fadeOutAt + 2000));
+    }, fadeOutAt + 1000));
   }
 
   // helpers used in template

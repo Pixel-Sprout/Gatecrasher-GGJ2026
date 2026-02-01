@@ -16,9 +16,8 @@ export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
   private svc = inject(GameHubService);
   
   // animation timing (ms)
-  private perImageDuration = 2200; // time between image starts
-  private fadeDuration = 800; // fade-in duration
-  private fadeOutDuration = 900; // container fade-out duration
+  private perImageDuration = 1500; // time between image starts
+  private fadeDuration = 400; // fade-in duration
   private timers: any[] = [];
 
  public images = signal<string[]>([]);
@@ -52,7 +51,7 @@ export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
   // Attempt to load the two predefined images for this cutscene
   private async loadFirstImages(): Promise<void> {
     const base = 'imgs/make-the-mask/';
-    const candidates = ['01-people-preparing-masks.png', '02-witch-preparing-mask.png'];
+    const candidates = ['01-people-preparing-masks.jpg', '02-witch-preparing-mask.jpg'];
     const foundImages: string[] = [];
 
     for (const candidate of candidates) {
@@ -82,7 +81,7 @@ export class CutsceneMakeTheMaskComponent implements OnInit, OnDestroy {
     // After the sequence finishes, wait 2s then change app state to MASK_DRAW
     this.timers.push(setTimeout(() => {
       this.svc.ready();
-    }, fadeOutAt + 2000));
+    }, fadeOutAt + 1000));
   }
 
   // helpers used in template
