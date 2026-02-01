@@ -1,7 +1,11 @@
-<div class="container bg-scheme-light" [class.bg-witch-dark]="isBadPlayer()">
+<div class="container" [ngClass]="isBadPlayer() ? 'bg-witch-dark' : 'bg-scheme-light'">
   <!-- Header -->
   <div class="header">
     <h1>Draw Your Mask</h1>
+    
+    @if (isBadPlayer()) {
+      <img src="imgs/evil_mask.png" class="mask"/> 
+    }
   </div>
 
   <!-- Main Canvas Area -->

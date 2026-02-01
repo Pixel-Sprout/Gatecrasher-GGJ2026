@@ -1,3 +1,30 @@
+.header {
+  position: relative;
+}
+
+.mask {
+  width: 100px;
+  height: 100px;
+  display: block;
+  position: absolute;
+  z-index: 2;
+  top: -14px;
+  right:-32px;
+  @media screen and (min-width:768px) {
+    right:0;
+    top:-24px;
+    width: 150px;
+    height: 150px;
+  }
+
+  @media screen and (min-width: 1024px) {
+    top: -44px;
+    right: -130px;
+    width: 250px;
+    height: 250px;
+  }
+}
+
 
 .content {
   @media screen and (min-width:1024px) {
@@ -300,7 +327,9 @@ h3 {
     min-height: 200px;
   }
 }
- 
+
+
+
 .tool {
   display: flex;
   flex-flow: column;
