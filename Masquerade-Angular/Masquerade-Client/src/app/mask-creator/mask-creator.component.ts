@@ -46,22 +46,23 @@ export class MaskCreatorComponent implements AfterViewInit {
   private api = inject(HttpApiService);
   private appState = inject(AppStateService);
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit(): Promise<void> {
     this.loadFeatureSectionsFromState();
     this.initializeCanvas();
     this.updateBrushPreview();
 
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+    await this.svc.onReceivePhaseChanged().subscribe(async ([phase, message]) => {
+      await this.postDrawing();
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
-    );
+    });
   }
 
   private loadFeatureSectionsFromState(): void {
     try {
       var message = this.appState.drawingMessageSignal();
-      if (message) { 
+      if (message) {
         if (message.maskDescriptions && Array.isArray(message.maskDescriptions)) {
           this.featureSections = message.maskDescriptions;
           console.log('Loaded featureSections from navigation state', this.featureSections);
@@ -210,14 +211,16 @@ export class MaskCreatorComponent implements AfterViewInit {
     this.canvasHasDrawing = false;
   }
 
-  async onReady(): Promise<void> {
-    // Get canvas data as image
+  async postDrawing(): Promise<void> {
+    if (!this.canvasHasDrawing) {
+      console.warn('Please draw your mask before proceeding.');
+      return;
+    }// Get canvas data as image
     const imageData = this.canvas.toDataURL('image/png');
     console.log('Mask drawing saved:', imageData);
 
     await this.api.postDrawing(this.svc.playerId, this.svc.gameId, imageData);
 
-    // Save to localStorage as temporary transport to mask-comparison
     try {
       const key = 'masquerade_masks';
       const stored = JSON.parse(localStorage.getItem(key) || '[]');
@@ -239,8 +242,10 @@ export class MaskCreatorComponent implements AfterViewInit {
     } catch (e) {
       console.warn('Could not save mask to localStorage', e);
     }
+  }
 
-    // Navigate to mask-comparison
+  async onReady(): Promise<void> {
+    await this.postDrawing();
     this.svc.ready();
   }
 

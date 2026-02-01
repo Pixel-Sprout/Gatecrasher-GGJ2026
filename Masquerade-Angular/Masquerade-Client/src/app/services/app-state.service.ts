@@ -1,10 +1,13 @@
 import { Injectable, signal, inject, effect } from '@angular/core';
+import { BehaviorSubject} from "rxjs"
 import { GameState } from '../types/game-state.enum';
 @Injectable({
   providedIn: 'root'
 })
 export class AppStateService {
   private currentStateSignal = signal<GameState>(GameState.USER_SELECT);
+  public currentStateSource = new BehaviorSubject<GameState>(GameState.USER_SELECT);
+
 
   //Messages
   public lobbyMessageSignal= signal<any>('');
@@ -16,6 +19,9 @@ export class AppStateService {
   public readonly currentState = this.currentStateSignal.asReadonly();
 
   constructor() {
+    this.currentStateSource.subscribe((state) => {
+      this.currentStateSignal.set(state);
+    })
   }
 
   setState(state: GameState, message: any): void {
@@ -36,7 +42,7 @@ export class AppStateService {
         this.cutsceneMessageSignal.set(message || '');
         break;
     }
-    this.currentStateSignal.set(state);
+    this.currentStateSource.next(state);
   }
 
   getState(): GameState {

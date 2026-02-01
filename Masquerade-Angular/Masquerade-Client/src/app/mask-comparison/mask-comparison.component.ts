@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
@@ -44,16 +44,18 @@ export class MaskComparisonComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPlayerMasks();
-    
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
     );
 
-    this.svc.onReceivePlayersInTheRoom().subscribe(msg => 
+    this.svc.onReceivePlayersInTheRoom().subscribe(msg =>
       this.votingPlayers.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: 'Mask Maker', hasVoted: player.isReady })))
     );
+
+
   }
 
   private loadPlayerMasks(): void {
@@ -77,7 +79,7 @@ export class MaskComparisonComponent implements OnInit {
         id: m.player.userId,
         name: m.player.username,
         role: 'Role 1',
-        hasVoted: m.player.isReady  
+        hasVoted: m.player.isReady
         });
     });
   }
@@ -90,7 +92,7 @@ export class MaskComparisonComponent implements OnInit {
     if (!this.selectedMaskId) return;
 
     console.log('Vote submitted for mask:', this.selectedMaskId);
-    
+
     this.svc.castVote(this.selectedMaskId);
     this.svc.ready();
   }

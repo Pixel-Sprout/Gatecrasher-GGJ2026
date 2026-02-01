@@ -38,7 +38,8 @@ namespace Masquerade_GGJ_2026.Controllers
                 return NotFound(new { error = "Game not found." });
             }
 
-            if (game.PhaseDetails.CurrentPhase != Models.RoundPhase.Drawing)
+            if (game.PhaseDetails.CurrentPhase != Models.RoundPhase.Drawing
+                && game.PhaseDetails.CurrentPhase != Models.RoundPhase.CutsceneMakeTheMask)
             {
                 return BadRequest(new { error = "Drawings can only be sent during the Drawing phase." });
             }
