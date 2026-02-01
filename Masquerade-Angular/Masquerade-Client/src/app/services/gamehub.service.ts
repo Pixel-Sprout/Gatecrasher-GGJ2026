@@ -28,6 +28,7 @@ export class GameHubService {
   public playerId: string = '';
   public playerName: string = '';
   public gameId: string = '';
+  private userToken: string = crypto.randomUUID();
 
   onReceiveMessage(): Observable<string> {
     return this.receiveMessage$.asObservable();
@@ -41,12 +42,16 @@ export class GameHubService {
     return this.receivePhaseChanged$.asObservable();
   }
 
-  async connect(username: string): Promise<boolean> {
+  async connect(username: string, userToken: string | null = null): Promise<boolean> {
     if (this.connection && this.connection.state !== 'Disconnected') {
       return false;
     }
 
-    const hubUrl = `${this.locator.getSignalRHubEndpoint().replace(/\/$/, '')}/hubs/game?username=${encodeURIComponent(username)}`;
+    if (userToken){
+      this.userToken = userToken;
+    }
+
+    var hubUrl = `${this.locator.getSignalRHubEndpoint().replace(/\/$/, '')}/hubs/game?username=${encodeURIComponent(username)}&userToken=${encodeURIComponent(this.userToken)}`;
 
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl)
@@ -77,6 +82,10 @@ export class GameHubService {
 
     this.connection.on('ExceptionMessage', (message: string, stackTrace: string) => {
       console.warn('ExceptionMessage:', message, stackTrace);
+    });
+
+    this.connection.on("onUserConnected", (userToken: string) => {
+      console.log("User connected with token: " + userToken);
     });
 
     try{

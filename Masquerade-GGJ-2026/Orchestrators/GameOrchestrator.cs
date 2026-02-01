@@ -124,16 +124,16 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 {
                     if (player != badPlayer)
                     {
-                        if (player.VotedPlayerId == badPlayer.Player.ConnectionId)
+                        if (player.VotedPlayerId == badPlayer.Player.UserId)
                         {
                             player.Score += 5;
                         }
-                        if (badPlayer.Player.ConnectionId == kickedPlayerId)
+                        if (badPlayer.Player.UserId == kickedPlayerId)
                         {
                             player.Score += 5;
                         }
                     }
-                    if (player == badPlayer && kickedPlayerId != badPlayer.Player.ConnectionId)
+                    if (player == badPlayer && kickedPlayerId != badPlayer.Player.UserId)
                     {
                         badPlayer.Score += 20;
                     }

@@ -36,7 +36,6 @@ export class UserSelectComponent implements OnInit, OnDestroy {
     const s = this.svc.receiveGameRooms$.subscribe(rooms => {
       var reqestedRoom = rooms.find(r => r.gameId == this.requestedRoomId);
       if(reqestedRoom){
-        console.log("got room", reqestedRoom);
         this.joinRoom(reqestedRoom);
       }
 

@@ -20,18 +20,20 @@ namespace Masquerade_GGJ_2026.Orchestrators
             _hub = hub;
         }
 
-        public async Task UserJoined(string gameId, string playerId, string? userName)
+        public async Task UserJoined(Guid gameId, Player player)
         {
-            await _hub.Clients.Group(gameId!).SendAsync("UserJoinedGameGroup", playerId, userName, gameId);
-            await _hub.Groups.AddToGroupAsync(playerId, gameId);
-            _log.LogInformation("Connection {ConnectionId} joined game group {GameId}", playerId, gameId);
+            player.lastAttachedGameId = gameId;
+            var gameKey = gameId.ToString();
+            await _hub.Clients.Group(gameKey!).SendAsync("UserJoinedGameGroup", player.UserId, player.Username, gameId);
+            await _hub.Groups.AddToGroupAsync(player.ConnectionId, gameKey);
+            _log.LogInformation("Connection {ConnectionId} joined game group {GameId}", player.UserId, gameId);
         }
 
-        public async Task UserLeft(string gameId, string playerId, string? userName)
+        public async Task UserLeft(string gameId, Player player)
         {
-            await _hub.Clients.Group(gameId!).SendAsync("UserLeftGameGroup", playerId, userName, gameId);
-            await _hub.Groups.RemoveFromGroupAsync(playerId, gameId!);
-            _log.LogInformation("Connection {ConnectionId} left game group {GameId}", playerId, gameId);
+            await _hub.Clients.Group(gameId!).SendAsync("UserLeftGameGroup", player.UserId, player.Username, gameId);
+            await _hub.Groups.RemoveFromGroupAsync(player.ConnectionId, gameId!);
+            _log.LogInformation("Connection {ConnectionId} left game group {GameId}", player.UserId, gameId);
         }
 
         public async Task PhaseChanged(Game? game)
@@ -121,12 +123,13 @@ namespace Masquerade_GGJ_2026.Orchestrators
 
         public async Task PlayerReady(Game game, Player player)
         {
-            await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PlayerIsReady", player.ConnectionId, player.IsReady);
+            await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PlayerIsReady", player.UserId, player.IsReady);
         }
 
         public async Task SendPlayersInRoom(Game game)
         {
-            await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PlayersInTheRoom", game.Players.Select(p => p.Player).ToList());
+            await _hub.Clients.Group(game.GameId.ToString()).SendAsync("PlayersInTheRoom", 
+                game.Players.Where(p => !p.Player.IsRemoved).Select(p => p.Player).ToList());
         }
 
         public async Task SendExceptionMessage(Game game, string message, string stackTrace)

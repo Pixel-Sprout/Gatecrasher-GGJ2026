@@ -43,7 +43,7 @@ namespace Masquerade_GGJ_2026.Controllers
                 return BadRequest(new { error = "Drawings can only be sent during the Drawing phase." });
             }
 
-            var player = game.Players.FirstOrDefault(p => p.Player.ConnectionId == playerId);
+            var player = game.Players.FirstOrDefault(p => p.Player.UserId == playerId);
             if (player is null)
             {
                 return NotFound(new { error = "Player not found in the specified game." });
@@ -100,7 +100,7 @@ namespace Masquerade_GGJ_2026.Controllers
             // Return drawings for all players within the game
             var playerDrawings = game.Players
                 //.Where(p => p != player && !string.IsNullOrEmpty(p.EncodedMask))
-                .ToDictionary(p => p.Player.ConnectionId, p => p.EncodedMask);
+                .ToDictionary(p => p.Player.UserId, p => p.EncodedMask);
             if (playerDrawings.Count > 0)
             {
                 return Ok(playerDrawings);
