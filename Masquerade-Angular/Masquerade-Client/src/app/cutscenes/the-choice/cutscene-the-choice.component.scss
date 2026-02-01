@@ -1,8 +1,7 @@
 :host{display:block}
 
 .cutscene-the-choice{
-  // position:fixed;
-  // left:0;right:0;top:0;bottom:0;
+  
   display:flex;
   flex-flow:column;
   align-items:center;
@@ -18,8 +17,7 @@
   pointer-events:none;
 }
 
-.frame{
-  // position:absolute;
+.frame {
   display:flex;
   align-items:center;
   justify-content:center;
@@ -29,17 +27,46 @@
   animation-name: fadeInStay;
   animation-fill-mode: forwards;
   animation-timing-function: ease-in-out;
+  @media screen and (min-width:1024px) {
+    animation-name: slideInStay;
+  }
 }
 
-.frame img{
-  max-width:400px;
-  max-height:400px;
-  width:auto;
-  height:auto;
-  object-fit:contain;
-  display:block;
+.frame img {
+    max-width: 320px;
+    max-height: 320px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    @media screen and (min-width:768px) {
+        max-width: 500px;
+        max-height: 500px;
+      }
+    @media screen and (min-width:1024px) {
+      position: relative;
+      transform: translate(0,0);
+      top:unset;
+      left:unset;
+      max-width: 400px;
+      max-height: 400px;
+    }
 }
-@keyframes fadeInStay{
+
+.cutscene-row {
+  display:block;
+  @media screen and (min-width:1024px) {
+    display: flex;
+    flex-flow: row;
+  }
+}
+
+
+@keyframes slideInStay{
   0% {
     opacity: 0;
     transform: translateX(-12vw) translateZ(0);
@@ -51,5 +78,18 @@
   100% {
     opacity: 1;
     transform: translateX(0) translateZ(0);
+  }
+}
+
+
+@keyframes fadeInStay{
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
   }
 }
