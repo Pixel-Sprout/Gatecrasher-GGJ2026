@@ -11,6 +11,7 @@ export class AppStateService {
   public drawingMessageSignal = signal<any>('');
   public votingMessageSignal = signal<any>('');
   public scoringMessageSignal = signal<any>('');
+  public cutsceneMessageSignal = signal<any>('');
 
   public readonly currentState = this.currentStateSignal.asReadonly();
 
@@ -30,6 +31,9 @@ export class AppStateService {
         break;
       case GameState.SCORING:
         this.scoringMessageSignal.set(message || '');
+        break;
+      case GameState.CUTSCENE_THE_CHOICE:
+        this.cutsceneMessageSignal.set(message || '');
         break;
     }
     this.currentStateSignal.set(state);

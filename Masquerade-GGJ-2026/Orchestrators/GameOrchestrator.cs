@@ -119,23 +119,45 @@ namespace Masquerade_GGJ_2026.Orchestrators
             try
             {
                 var badPlayer = game.Players.First(p => p.IsEvil);
-                var kickedPlayerId = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count()).First().Key;
-                foreach (var player in game.Players)
+                var kickedPlayers = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count()).Select(x => x.Key);
+                if (kickedPlayers.Count() > 1)
                 {
-                    if (player != badPlayer)
+                    //TIE
+                    foreach (var player in game.Players)
                     {
-                        if (player.VotedPlayerId == badPlayer.Player.UserId)
+                        if (player != badPlayer)
                         {
-                            player.Score += 5;
+                            if (player.VotedPlayerId == badPlayer.Player.UserId)
+                            {
+                                player.Score += 5;
+                            }
                         }
-                        if (badPlayer.Player.UserId == kickedPlayerId)
+                        if (player == badPlayer)
                         {
-                            player.Score += 5;
+                            badPlayer.Score += 10;
                         }
                     }
-                    if (player == badPlayer && kickedPlayerId != badPlayer.Player.UserId)
+                }
+                else
+                {
+                    var kickedPlayerId = kickedPlayers.First();
+                    foreach (var player in game.Players)
                     {
-                        badPlayer.Score += 20;
+                        if (player != badPlayer)
+                        {
+                            if (player.VotedPlayerId == badPlayer.Player.UserId)
+                            {
+                                player.Score += 5;
+                            }
+                            if (badPlayer.Player.UserId == kickedPlayerId)
+                            {
+                                player.Score += 5;
+                            }
+                        }
+                        if (player == badPlayer && kickedPlayerId != badPlayer.Player.UserId)
+                        {
+                            badPlayer.Score += 20;
+                        }
                     }
                 }
             }

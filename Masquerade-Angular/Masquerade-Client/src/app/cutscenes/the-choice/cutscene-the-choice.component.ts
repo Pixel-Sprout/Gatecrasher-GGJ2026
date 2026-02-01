@@ -57,7 +57,7 @@ export class CutsceneTheChoiceComponent implements OnInit, OnDestroy {
     const goodEnding = ['good-1-you-chose-witch.png', 'good-2-witch-captured.png', 'good-3-witch-lost.png'];
     const badEnding = ['bad-1-you-chose-player.png', 'bad-2-witch-attacks.png', 'bad-3-king-dead.png'];
     
-    for (const candidate of goodEnding) {
+    for (const candidate of (this.appState.cutsceneMessageSignal().playAlternativeCutscene ? badEnding : goodEnding)) {
       const fullPath = `${base}${candidate}`;
       // skip if already found
       if (foundImages.includes(fullPath)) continue;
