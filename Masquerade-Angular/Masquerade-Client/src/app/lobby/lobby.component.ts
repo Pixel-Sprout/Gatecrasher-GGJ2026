@@ -45,7 +45,7 @@ export class LobbyComponent implements OnInit {
     console.log(this.svc.gameId);
     this.joinUrl.set(this.locator.getRoomJoinUrl(this.svc.gameId))
     this.svc.onReceivePlayersInTheRoom().subscribe(msg =>
-      this.players.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: 'Mask Maker', ready: player.isReady }))
+      this.players.set(msg.map((player, i) => ({ id: player.userId, name: player.username, role: msg[0].userId == player.userId ? 'Admin' : 'Mask Maker', ready: player.isReady }))
       ));
     this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
       setTimeout(() => {
@@ -60,7 +60,7 @@ export class LobbyComponent implements OnInit {
         this.players().push({
           id: p.userId,
           name: p.username,
-          role: 'Role 1',
+          role: this.appState.lobbyMessageSignal().players[0] == p ? 'Admin' : 'Mask Maker',
           ready: p.isReady,
         });
       }
