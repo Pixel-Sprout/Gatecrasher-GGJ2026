@@ -17,14 +17,14 @@ input, button {
   --darkest: #030300;
   --dark: #463F3A;
   --light-brown: #D6CA98;
-  
+
   --burned-rose: #8C4843;
   --light-rose: #af4863;
   --witch: #8661C1;
   --witch-dark: #2E294E;
   --accent-green: #2ecc71;
   --flat-green:var(--scheme-accent-mint);
-  
+
   --scheme-background-dark: #5c4035;
   --scheme-background-light:#fed9cf;
   --scheme-accent:#fe8162;
@@ -98,7 +98,7 @@ input, button {
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   font-family: Arial, sans-serif;
   border-top-left-radius:1rem;
   border-top-right-radius:1rem;
