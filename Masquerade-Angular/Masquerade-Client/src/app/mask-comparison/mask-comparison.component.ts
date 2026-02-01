@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
@@ -25,10 +25,17 @@ interface VotingPlayer {
   styleUrl: './mask-comparison.component.scss',
   standalone: true
 })
-export class MaskComparisonComponent implements OnInit {
+export class MaskComparisonComponent implements OnInit, OnDestroy {
   playerMasks: PlayerMask[] = [];
   votingPlayers = signal<VotingPlayer[]>([]);
   selectedMaskId: string | null = null;
+
+  // Timer state for deadline progress
+  deadline: Date | null = null;
+  totalSeconds: number = 60; // fallback duration
+  remainingSeconds = signal<number>(0);
+  deadlineProgress = signal<number>(0);
+  private timerInterval: any = null;
 
   get votedCount(): number {
     return this.votingPlayers().filter(p => p.hasVoted).length;
@@ -44,8 +51,18 @@ export class MaskComparisonComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPlayerMasks();
+    
+    // read deadline from voting message if present
+    try {
+      const msg = this.appState.votingMessageSignal();
+      if (msg && msg.phaseEndsAt) {
+        this.setDeadlineFromValue(msg.phaseEndsAt, Date.now());
+      }
+    } catch(e) {}
 
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+    this.startTimer();
+
+    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
@@ -56,6 +73,53 @@ export class MaskComparisonComponent implements OnInit {
     );
 
 
+  }
+
+  ngOnDestroy(): void {
+    this.stopTimer();
+  }
+
+  private setDeadlineFromValue(deadlineVal: any, startedAt?: any): void {
+    try {
+      const dl = new Date(deadlineVal);
+      if (isNaN(dl.getTime())) return;
+      this.deadline = dl;
+      if (startedAt) {
+        const st = new Date(startedAt);
+        if (!isNaN(st.getTime())) {
+          const total = Math.max(1, Math.round((dl.getTime() - st.getTime()) / 1000));
+          this.totalSeconds = total;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  private startTimer(): void {
+    this.stopTimer();
+    if (!this.deadline) return;
+    this.updateTimer();
+    this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+  }
+
+  private updateTimer(): void {
+    if (!this.deadline) return;
+    const now = Date.now();
+    const remainingMs = this.deadline.getTime() - now;
+    this.remainingSeconds.set(remainingMs / 1000);
+    const elapsed = this.totalSeconds - this.remainingSeconds();
+    this.deadlineProgress.set((elapsed / this.totalSeconds) * 100);
+    if (this.remainingSeconds() <= 0) {
+      this.stopTimer();
+    }
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   private loadPlayerMasks(): void {

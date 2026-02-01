@@ -3,6 +3,17 @@
   <div class="header">
     <h1>Compare Masks</h1>
     <span class="subtitle">Vote for the most different mask</span>
+
+    <!-- Timer display -->
+    <div class="creator-timer">
+      <div class="timer-row">
+        <span class="timer-label">Time Remaining: </span>
+        <span class="timer-remaining">{{ remainingSeconds() > 0 ? (remainingSeconds() | number:'2.0-0') : '0' }}s</span>
+      </div>
+      <div class="timer-bar">
+        <div class="timer-fill" [style.width.%]="deadlineProgress()"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Main Content Area -->
@@ -38,6 +49,7 @@
     <!-- Right: Voting Summary -->
     <div class="voting-summary-section">
       <h2>Voting Status</h2>
+
       <div class="players-voting-list">
         @for ( player of votingPlayers(); track player.id ) {
           <div 
