@@ -29,7 +29,7 @@ jobs:
           fi
       - name: Output Tag
         run: |
-          echo "output: ${{ steps.tagGen.outputs.tag }}
+          echo "output: ${{ steps.tagGen.outputs.tag }}"
   push_to_registry:
     if: false
     name: Push Docker image to Docker Hub
