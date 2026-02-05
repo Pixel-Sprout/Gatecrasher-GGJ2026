@@ -89,7 +89,7 @@ jobs:
     if: success()
     name: Pull and Run deployment
     needs: pre_build
-    runs-on: local
+    runs-on: PixelLocal
     permissions:
       packages: write
       contents: read
