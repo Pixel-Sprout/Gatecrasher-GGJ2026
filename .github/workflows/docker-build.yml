@@ -13,7 +13,25 @@ on:
 
 
 jobs:
+  prepare_image_tags:
+    name: Prepare image tags
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tagGen.outputs.tag }}
+    steps:
+      - name: Generate Tag
+        id: tagGen
+        run: |
+         if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=Release_${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=BuildTest_$${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Output Tag
+        run: |
+          echo "output: ${{ steps.tagGen.outputs.tag }}
   push_to_registry:
+    if: false
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     permissions:
@@ -22,14 +40,6 @@ jobs:
       attestations: write
       id-token: write
     steps:
-      - name: Prepare tag
-        id: extractTag
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            echo "Release tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "Manual tag=BuildTest" >> $GITHUB_OUTPUT
-          fi
         
       - name: Check out the repo
         if: false
