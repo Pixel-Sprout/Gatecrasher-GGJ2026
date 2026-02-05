@@ -1,0 +1,87 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'correct tag: #.#.# where # is number'
+        default: ''
+        required: true
+        type: string
+      latest:
+        description: "is latest version"
+        default: false
+        required: false
+        type: boolean
+
+
+jobs:
+  pre_build:
+    name: Prepare image tags
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tagGen.outputs.tag }}
+      latest: ${{ steps.tagGen.outputs.latest }}
+    steps:
+      - name: Generate Tag
+        id: tagGen
+        run: |
+         if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag={{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "latest=false" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Build uruchomiony ręcanie"
+            echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "latest=${{ inputs.latest }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Validate Tag
+        id: tagCheck
+        run: |
+          TAG="${{ steps.tagGen.outputs.tag }}"
+          if [[ -n "$TAG" && "$TAG" =~ ^(?:(?:[0-9]+)\.?)+$ ]]; then
+            echo "::info::Publikuje z tagiem  ${{ steps.tagGen.outputs.tag }}
+          else
+            echo "::error::Niewłaściwy format taga. poprawny format taha to ##.## gdzie # to cyfra. otrzymano: ${{ steps.tagGen.outputs.tag }}"
+            exit 1
+          fi
+  push_to_registry:
+    if: success()
+    name: Push Docker image to Docker Hub
+    needs: pre_build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        if: success()
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Build and push Docker image non latest
+        id: pushNonLatest
+        if: success() && !needs.pre_build.outputs.latest
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: krzysztofgornowicz/ggj2026:${{ needs.pre_build.outputs.tag }} 
+          
+      - name: Build and push Docker image latest
+        id: pushLatest
+        if: success() && needs.pre_build.outputs.latest
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: krzysztofgornowicz/ggj2026:${{ needs.pre_build.outputs.tag }},krzysztofgornowicz/ggj2026:latest
