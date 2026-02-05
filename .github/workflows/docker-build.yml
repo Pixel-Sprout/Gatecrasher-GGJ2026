@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
   push_to_registry:
-    if: success()
+    if: false
     name: Push Docker image to Docker Hub
     needs: pre_build
     runs-on: ubuntu-latest
@@ -85,3 +85,16 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: krzysztofgornowicz/ggj2026:${{ needs.pre_build.outputs.tag }},krzysztofgornowicz/ggj2026:latest
+  pull_and_run:
+    if: success()
+    name: Push Docker image to Docker Hub
+    needs: pre_build
+    runs-on: self-hosted
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+     - name: pull latest
+       run: docker pull krzysztofgornowicz/ggj2026:latest
