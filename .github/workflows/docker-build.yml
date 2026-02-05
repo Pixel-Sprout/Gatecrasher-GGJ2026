@@ -98,3 +98,5 @@ jobs:
     steps:
      - name: pull latest
        run: docker pull krzysztofgornowicz/ggj2026:latest
+     - name: run latest
+       run: docker run -d -p80:8080 krzysztofgornowicz/ggj2026:latest
