@@ -38,6 +38,15 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+      
+      - name: Extract version tag
+        id: extract_tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=BuildTest" >> $GITHUB_OUTPUT
+          fi
         
 #      - name: Read config.yaml
 #        uses: jbutcher5/read-yaml@main 
@@ -59,4 +68,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: krzysztofgornowicz/ggj2026:BuildTest
+          tags: krzysztofgornowicz/ggj2026:${{ steps.extract_tag.outputs.tag }}
