@@ -87,9 +87,9 @@ jobs:
           tags: krzysztofgornowicz/ggj2026:${{ needs.pre_build.outputs.tag }},krzysztofgornowicz/ggj2026:latest
   pull_and_run:
     if: success()
-    name: Push Docker image to Docker Hub
+    name: Pull and Run deployment
     needs: pre_build
-    runs-on: self-hosted
+    runs-on: local
     permissions:
       packages: write
       contents: read
