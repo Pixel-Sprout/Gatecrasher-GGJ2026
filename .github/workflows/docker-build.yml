@@ -32,7 +32,7 @@ jobs:
         id: tagCheck
         run: |
           TAG="${{ steps.tagGen.outputs.tag }}"
-          if [[ -n "$TAG" && "$TAG" =~ ^[0-9.]+$ ]]; then
+          if [[ -n "$TAG" && "$TAG" =~ ^(?:(?:[0-9]+)\.?)+$ ]]; then
             echo "::info::Publikuje z tagiem  ${{ steps.tagGen.outputs.tag }}
           else
             echo "::error::Niewłaściwy format taga. poprawny format taha to ##.## gdzie # to cyfra. otrzymano: ${{ steps.tagGen.outputs.tag }}"
