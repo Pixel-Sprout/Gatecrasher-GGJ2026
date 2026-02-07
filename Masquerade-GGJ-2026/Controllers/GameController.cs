@@ -1,5 +1,5 @@
 ﻿using Masquerade_GGJ_2026.Models;
-using Masquerade_GGJ_2026.Orchestrators;
+using Masquerade_GGJ_2026.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Masquerade_GGJ_2026.Controllers
@@ -8,23 +8,22 @@ namespace Masquerade_GGJ_2026.Controllers
     [Route("[controller]")]
     public class GameController : ControllerBase
     {
-        private readonly GameNotifier _notifier;
         private readonly ILogger<GameController> _logger;
-        private readonly GameOrchestrator _orchestrator;
+        private readonly IGameStore _gameStore;
 
-        public GameController(ILogger<GameController> logger, GameNotifier notifier, GameOrchestrator orchestrator)
+        public GameController(ILogger<GameController> logger, IGameStore gameStore)
         {
-            _notifier = notifier;
             _logger = logger;
-            _orchestrator = orchestrator;
+            _gameStore = gameStore;
         }
 
         [HttpPost("{gameId}/{playerId}/drawing")]
         public IActionResult UploadDrawing(string gameId, string playerId, [FromBody] string encodedDrawing)
         {
-            if (!Guid.TryParse(gameId, out Guid gameGuid))
+            var game = _gameStore.Get(gameId);
+            if (game is null)
             {
-                return BadRequest(new { error = "Invalid gameId." });
+                return NotFound(new { error = "Game not found." });
             }
 
             if (string.IsNullOrWhiteSpace(playerId))
@@ -32,14 +31,8 @@ namespace Masquerade_GGJ_2026.Controllers
                 return BadRequest(new { error = "playerId is required." });
             }
 
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameGuid);
-            if (game is null)
-            {
-                return NotFound(new { error = "Game not found." });
-            }
-
-            if (game.PhaseDetails.CurrentPhase != Models.RoundPhase.Drawing
-                && game.PhaseDetails.CurrentPhase != Models.RoundPhase.CutsceneMakeTheMask)
+            if (game.PhaseDetails.CurrentPhase != RoundPhase.Drawing
+                && game.PhaseDetails.CurrentPhase != RoundPhase.CutsceneMakeTheMask)
             {
                 return BadRequest(new { error = "Drawings can only be sent during the Drawing phase." });
             }
@@ -50,7 +43,7 @@ namespace Masquerade_GGJ_2026.Controllers
                 return NotFound(new { error = "Player not found in the specified game." });
             }
 
-            if (encodedDrawing is null || string.IsNullOrWhiteSpace(encodedDrawing))
+            if (string.IsNullOrWhiteSpace(encodedDrawing))
             {
                 return BadRequest(new { error = "encodedDrawing is required in the request body." });
             }
@@ -69,38 +62,20 @@ namespace Masquerade_GGJ_2026.Controllers
         }
 
         [HttpGet("{gameId}/drawings")]
-        public IActionResult GetPlayerDrawings(string gameId/*, string playerId*/)
+        public IActionResult GetPlayerDrawings(string gameId)
         {
-            if (!Guid.TryParse(gameId, out Guid gameGuid))
-            {
-                return BadRequest(new { error = "Invalid gameId." });
-            }
-
-            //if (string.IsNullOrWhiteSpace(playerId))
-            //{
-            //    return BadRequest(new { error = "playerId is required." });
-            //}
-
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameGuid);
+            var game = _gameStore.Get(gameId);
             if (game is null)
             {
                 return NotFound(new { error = "Game not found." });
             }
 
-            if(game.PhaseDetails.CurrentPhase != Models.RoundPhase.Voting)
+            if(game.PhaseDetails.CurrentPhase != RoundPhase.Voting)
             {
                 return BadRequest(new { error = "Drawings can only be retrieved during the Voting phase." });
             }
 
-            //var player = game.Players.FirstOrDefault(p => p.ConnectionId == playerId);
-            //if (player is null)
-            //{
-            //    return NotFound(new { error = "Player not found in the specified game." });
-            //}
-
-            // Return drawings for all players within the game
             var playerDrawings = game.Players
-                //.Where(p => p != player && !string.IsNullOrEmpty(p.EncodedMask))
                 .ToDictionary(p => p.Player.UserId, p => p.EncodedMask);
             if (playerDrawings.Count > 0)
             {

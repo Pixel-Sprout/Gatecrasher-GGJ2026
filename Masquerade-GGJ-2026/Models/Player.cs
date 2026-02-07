@@ -1,13 +1,44 @@
-﻿namespace Masquerade_GGJ_2026.Models
+﻿using Masquerade_GGJ_2026.Models.Messages;
+using Masquerade_GGJ_2026.Notifiers;
+
+namespace Masquerade_GGJ_2026.Models
 {
     public class Player
     {
-        public required string UserToken { get; set; }
+        public string UserToken { get; set; }
         public string UserId { get; init; } = Guid.NewGuid().ToString();
-        public required string ConnectionId { get; set; }
+        public string ConnectionId { get; set; }
         public string? Username { get; set; }
         public bool IsReady { get; set; }
         public bool IsRemoved { get; set; } = false;
-        public Guid? lastAttachedGameId { get; set; } = null;
+        public string? lastAttachedGameId { get; set; } = null;
+        public PlayerNotifier Notifier { get; set; }
+
+        public Player(string userToken, string connectionId, string userName, PlayerNotifier notifier)
+        {
+            UserToken = userToken;
+            ConnectionId = connectionId;
+            Username = userName;
+            Notifier = notifier;
+        }
+
+        #region Notifications
+
+        public Task NotifyPhaseChanged(Game game)
+        {
+            return Notifier.PhaseChanged(this, game);
+        }
+
+        public Task NotifyPlayerState()
+        {
+            return Notifier.PlayerState(this);
+        }
+
+        public Task NotifyAllGameRooms(GameRoomMessage[] gameRooms)
+        {
+            return Notifier.AllGameRooms(this, gameRooms);
+        }
+
+        #endregion
     }
 }

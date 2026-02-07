@@ -1,4 +1,6 @@
+using Masquerade_GGJ_2026.Notifiers;
 using Masquerade_GGJ_2026.Orchestrators;
+using Masquerade_GGJ_2026.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the cont
@@ -18,8 +20,13 @@ builder.Services.AddCors(options =>
     });
 }); 
 
+builder.Services.AddScoped<PlayerFactory>();
+builder.Services.AddScoped<PlayerNotifier>();
 builder.Services.AddScoped<GameOrchestrator>();
-builder.Services.AddScoped<GameNotifier>();
+
+builder.Services.AddSingleton<GameFactory>();
+builder.Services.AddSingleton<GameNotifier>();
+builder.Services.AddSingleton<IGameStore, MemoryGameStore>();
 
 var app = builder.Build();
 

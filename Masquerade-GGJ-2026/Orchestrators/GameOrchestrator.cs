@@ -1,27 +1,10 @@
 ﻿using Masquerade_GGJ_2026.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
-using Microsoft.OpenApi.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Drawing;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
     public class GameOrchestrator
     {
         private readonly Random _random = new Random();
-        private readonly GameNotifier _notifier;
-
-        public GameOrchestrator(GameNotifier notifier)
-        {
-            _notifier = notifier;
-        }
 
         public void GenerateNewMaskRequirements(Game game)
         {
@@ -64,6 +47,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 "A mask that feels quiet and watchful.",
             };
 
+            game.AllMaskRequirements.Clear();
             for (int i = 0; i != game.Settings.TotalNumberOfRequirements; i++)
             {
                 int index;
@@ -111,7 +95,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                     break;
             }
 
-            await _notifier.PhaseChanged(game);
+            await game.NotifyPhaseChanged();
         }
 
         private void GrantPoints(Game game)
@@ -164,7 +148,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
             }
             catch (Exception ex)
             {
-                _notifier.SendExceptionMessage(game, ex.Message, ex.StackTrace ?? string.Empty).GetAwaiter().GetResult();
+                //_notifier.SendExceptionMessage(game, ex.Message, ex.StackTrace ?? string.Empty).GetAwaiter().GetResult();
             }
         }
 
@@ -180,7 +164,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
 
         public async Task EndPhase(Game game, string reason)
         {
-            await _notifier.EndPhase(game, reason);
+            await game.NotifyEndPhase(reason);
             await NextPhase(game);
         }
     }

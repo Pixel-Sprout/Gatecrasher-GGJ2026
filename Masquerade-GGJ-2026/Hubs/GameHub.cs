@@ -1,21 +1,27 @@
 using Masquerade_GGJ_2026.Models;
-using Masquerade_GGJ_2026.Orchestrators;
-using Microsoft.AspNetCore.SignalR;
 using Masquerade_GGJ_2026.Models.Messages;
+using Masquerade_GGJ_2026.Orchestrators;
+using Masquerade_GGJ_2026.Repositories;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Masquerade_GGJ_2026.Hubs
 {
     public class GameHub : Hub
     {
         private readonly ILogger<GameHub> _log;
-        private readonly GameNotifier _notifier;
+        private readonly PlayerFactory _playerFactory;
         private readonly GameOrchestrator _orchestrator;
+        private readonly IGameStore _gameStore;
         private static IDictionary<string, Player> _players = new Dictionary<string, Player>();
 
-        public GameHub(ILogger<GameHub> log, GameNotifier notifier, GameOrchestrator orchestrator)
+        public GameHub(ILogger<GameHub> log,
+            IGameStore gameStore,
+            PlayerFactory playerFactory,
+            GameOrchestrator orchestrator)
         {
             _log = log;
-            _notifier = notifier;
+            _gameStore = gameStore;
+            _playerFactory = playerFactory;
             _orchestrator = orchestrator;
         }
 
@@ -32,47 +38,42 @@ namespace Masquerade_GGJ_2026.Hubs
 
             if (!string.IsNullOrEmpty(username))
             {
-                Player player;
-                
-                if (_players.TryGetValue(userToken, out player))
+                if (_players.TryGetValue(userToken, out Player? player))
                 {
                     player.ConnectionId = Context.ConnectionId;
                     player.IsRemoved = false;
-                    if (player.lastAttachedGameId.HasValue)
+
+                    if (!string.IsNullOrEmpty(player.lastAttachedGameId))
                     {
-                        Context.Items["gameId"] = player.lastAttachedGameId.Value.ToString();
+                        Context.Items["gameId"] = player.lastAttachedGameId;
                         Context.Items["username"] = player.Username;
                         Context.Items["player"] = player;
-                        var game = GamesState.Games.FirstOrDefault(g => g.GameId == player.lastAttachedGameId.Value);
+                        var game = _gameStore.Get(player.lastAttachedGameId);
                         if (game != null)
                         {
-                            var playerState= game.Players.FirstOrDefault(p => p.Player == player);
+                            var playerState = game.Players.FirstOrDefault(p => p.Player == player);
                             if (playerState == null)
                             {
                                 game.Players.Add(new PlayerGameState { Player = player });
                             }
-                            _notifier.UserJoined(player.lastAttachedGameId.Value, player);
-                            await Clients.Caller.SendAsync("PlayerState", username, player.UserId);
-                            await Clients.Caller.SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, _notifier.CreateLobbyMessage(game));
-                            await _notifier.SendPlayersInRoom(game);
+
+                            await game.NotifyUserJoined(player);
+                            await player.NotifyPlayerState();
+                            await player.NotifyPhaseChanged(game);
+                            await game.NotifySendPlayersInRoom();
                         }
                     }
                 }
                 else
                 {
-                    player = new Player
-                    {
-                        ConnectionId = Context.ConnectionId,
-                        Username = username,
-                        UserToken = userToken
-                    };
+                    player = _playerFactory.Create(userToken, Context.ConnectionId, username);
                     _players.Add(userToken, player);
                 }
 
                 player.IsRemoved = false;
                 Context.Items["username"] = username;
                 Context.Items["player"] = player;
-                await Clients.Caller.SendAsync("PlayerState", username, player.UserId);
+                await player.NotifyPlayerState();
                 _log.LogInformation("User connected to GameHub: {Username} [{UserToken}], ConnectionId: {ConnectionId}", username, userToken, Context.ConnectionId);
             }
 
@@ -84,39 +85,33 @@ namespace Masquerade_GGJ_2026.Hubs
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
             _log.LogInformation("User disconnected from GameHub: {Username}, ConnectionId: {ConnectionId}", username, Context.ConnectionId);
 
-            // Global notification to all connected clients (existing behavior)
-            //await Clients.All.SendAsync("UserLeftGame", Context.ConnectionId, username);
-
             // If the connection was in a game group, notify that group and remove the connection
             if (Context.Items.ContainsKey("gameId"))
             {
                 var gameId = Context.Items["gameId"]?.ToString();
-                if (Guid.TryParse(gameId, out Guid gameIdGuid))
+                var game = _gameStore.Get(gameId);
+                var player = (Player)Context.Items["player"]!;
+                if (game != null && player != null)
                 {
-                    var game = GamesState.Games.FirstOrDefault(x => x.GameId == gameIdGuid);
-                    var player = (Player) Context.Items["player"];
-                    if(game != null && player != null)
-                    {
-                        await detachPlayerFromGame(player, game);
-                        await _notifier.UserLeft(gameId, player);
-                    }
+                    await DetachPlayerFromGame(player, game);
+                    await game.NotifyUserLeft(player);
                 }
             }
-
             await base.OnDisconnectedAsync(exception);
         }
 
         // Broadcast all game ids to the connected clients
         public async Task GetAllGameIds()
         {
-            await Clients.Caller.SendAsync("ReceiveAllGameIds", 
-                GamesState.Games
+            var player = (Player)Context.Items["player"]!;
+            GameRoomMessage[] gameRooms = _gameStore.GetAllGames()
                     .Select(g => new GameRoomMessage()
                     {
-                        GameId =  g.GameId,
+                        GameId = g.GameId,
                         GameName = g.GameName,
                         CurrentPhase = g.PhaseDetails.CurrentPhase.ToString()
-                    }).ToArray());
+                    }).ToArray();
+            await player.NotifyAllGameRooms(gameRooms);
         }
 
         /// <summary>
@@ -133,14 +128,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 return;
             }
 
-            //Invalid gameId
-            if (!Guid.TryParse(gameId, out Guid gameIdGuid))
-            {
-                await Clients.Caller.SendAsync("Error", "Invalid game ID.");
-                return;
-            }
-
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameIdGuid);
+            var game = _gameStore.Get(gameId);
             if (game == null || game.PhaseDetails.CurrentPhase != RoundPhase.Lobby)
             {
                 await Clients.Caller.SendAsync("Error", "Game not found or already started.");
@@ -148,103 +136,88 @@ namespace Masquerade_GGJ_2026.Hubs
             }
 
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
-            Context.Items["gameId"] = gameIdGuid;
+            Context.Items["gameId"] = gameId;
 
-            var player = (Player) Context.Items["player"];
-            await _notifier.UserJoined(gameIdGuid, player);
+            var player = (Player)Context.Items["player"]!;
 
-            game.Players.Add(new PlayerGameState { Player = player });
-
-            await Clients.Caller.SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, _notifier.CreateLobbyMessage(game));
-            await _notifier.SendPlayersInRoom(game);
+            await game.NotifyUserJoined(player);
+            await player.NotifyPhaseChanged(game);
+            await game.NotifySendPlayersInRoom();
         }
 
         public async Task<string> CreateAndJoinGame(string gameName)
         {
-            //Create new game
-            var newGame = new Game
-            {
-                GameName = string.IsNullOrWhiteSpace(gameName) ? $"Room {Guid.NewGuid()}" : gameName
-            };
-            GamesState.Games.Add(newGame);
+            //Create new game via factory (it assigns per-game notifier)
+            var newGame = _gameStore.Create(string.IsNullOrWhiteSpace(gameName) ? null : gameName);
+
             await _orchestrator.EndPhase(newGame, "New Game");
-            //await GetAllGameIds();
             //Join the newly created game
-            await JoinGame(newGame.GameId.ToString());
+            await JoinGame(newGame.GameId);
 
-            await _notifier.PhaseChanged(newGame);
+            await newGame.NotifyPhaseChanged();
 
-            return newGame.GameId.ToString();
+            return newGame.GameId;
         }
-        
+
         /// <summary>
         /// Allows a connected client to leave a specific game group.
         /// </summary>
         public async Task LeaveGame()
         {
             var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
-            if (Guid.TryParse(gameId, out Guid gameIdGuid))
-            {
-                return;
-            }
-
             Context.Items.Remove("gameId");
-            var player = (Player) Context.Items["player"];
-            
-            await _notifier.UserLeft(gameId!, player);
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameIdGuid);
+            var player = (Player)Context.Items["player"]!;
+
+            var game = _gameStore.Get(gameId);
             if (game != null)
             {
-                await detachPlayerFromGame(player, game);
+                await game.NotifyUserLeft(player);
+                await DetachPlayerFromGame(player, game);
             }
-            
         }
 
         public async Task PlayerReady()
         {
-            var player = (Player) Context.Items["player"];
-            if (!player.lastAttachedGameId.HasValue)
+            var player = (Player)Context.Items["player"]!;
+            if (string.IsNullOrWhiteSpace(player.lastAttachedGameId))
             {
                 _log.LogWarning("PlayerReady called with empty gameId");
                 return;
             }
 
-            var gameIdGuid = player.lastAttachedGameId.Value.ToString();
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == player.lastAttachedGameId);
+            var gameIdGuid = player.lastAttachedGameId;
+            var game = _gameStore.Get(player.lastAttachedGameId);
             if (game != null)
             {
-                if (player != null)
+                if (game.PhaseDetails.CurrentPhase == RoundPhase.Lobby)
+                {
+                    player.IsReady = !player.IsReady;
+                }
+                else
+                {
+                    player.IsReady = true;
+                }
+                await game.NotifyPlayerReady(player);
+                await game.NotifySendPlayersInRoom();
+                _log.LogInformation("Player {Username} in Game {GameId} is ready={ready}", player.Username, gameIdGuid, player.IsReady);
+                // Check if all players are ready
+                var nonRemovedPlayers = game.Players.Where(p => !p.Player.IsRemoved).ToArray();
+                if (nonRemovedPlayers.All(p => p.Player.IsReady)
+                    && (game.PhaseDetails.CurrentPhase != RoundPhase.Lobby || nonRemovedPlayers.Length >= 3))
                 {
                     if (game.PhaseDetails.CurrentPhase == RoundPhase.Lobby)
                     {
-                        player.IsReady = !player.IsReady; 
-                    }
-                    else
-                    {
-                        player.IsReady = true;
-                    }
-                    await _notifier.PlayerReady(game, player);
-                    await _notifier.SendPlayersInRoom(game);
-                    _log.LogInformation("Player {Username} in Game {GameId} is ready={ready}", player.Username, gameIdGuid, player.IsReady);
-                    // Check if all players are ready
-                    var nonRemovedPlayers = game.Players.Where(p => !p.Player.IsRemoved).ToArray();
-                    if (nonRemovedPlayers.All(p => p.Player.IsReady)
-                        && (game.PhaseDetails.CurrentPhase != RoundPhase.Lobby || nonRemovedPlayers.Length >= 3))
-                    {
-                        if (game.PhaseDetails.CurrentPhase == RoundPhase.Lobby)
+                        var toRemove = game.Players.Where(p => p.Player.IsRemoved).ToArray();
+                        foreach (var pr in toRemove)
                         {
-                            var toRemove = game.Players.Where(p => p.Player.IsRemoved).ToArray();
-                            foreach (var pr in toRemove)
-                            {
-                                pr.Player.lastAttachedGameId = null;
-                                _players.Remove(pr.Player.UserToken);
-                                game.Players.Remove(pr);
-                            }
+                            pr.Player.lastAttachedGameId = null;
+                            _players.Remove(pr.Player.UserToken);
+                            game.Players.Remove(pr);
                         }
-
-                        _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", gameIdGuid);
-                        await _orchestrator.EndPhase(game, "All players ready");
                     }
+
+                    _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", gameIdGuid);
+                    await _orchestrator.EndPhase(game, "All players ready");
                 }
             }
             else
@@ -256,25 +229,20 @@ namespace Masquerade_GGJ_2026.Hubs
         public async Task CastVote(string selectedPlayerId)
         {
             var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
-            if (!Guid.TryParse(gameId, out Guid gameIdGuid))
-            {
-                return;
-            }
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameIdGuid);
+            var game = _gameStore.Get(gameId);
             if (game != null)
             {
-                var innerPlayer = (Player) Context.Items["player"];
-                var player = game.Players.FirstOrDefault(p => p.Player == innerPlayer);
-                if (player != null)
+                var player = (Player)Context.Items["player"];
+                var playerState = game.Players.FirstOrDefault(p => p.Player == player);
+                if (playerState != null)
                 {
-                    player.VotedPlayerId = selectedPlayerId;
-                    _log.LogInformation("Player {Username} in Game {GameId} casted vote", player.Player.Username, gameIdGuid);
-                    // Check if all players have submitted their drawings
+                    playerState.VotedPlayerId = selectedPlayerId;
+                    _log.LogInformation("Player {Username} in Game {GameId} casted vote", player.Username, gameId);
                 }
             }
         }
 
-        private async Task detachPlayerFromGame(Player player, Game game)
+        private async Task DetachPlayerFromGame(Player player, Game game)
         {
             player.IsRemoved = true;
             if (game.Players.All(p => p.Player.IsRemoved))
@@ -284,39 +252,30 @@ namespace Masquerade_GGJ_2026.Hubs
                     _players.Remove(newPlayer.Player.UserToken);
                 }
                 game.Players.Clear();
-                GamesState.Games.Remove(game);
+                _gameStore.Remove(game.GameId);
                 Context.Items.Remove("player");
                 return;
             }
 
-            await _notifier.SendPlayersInRoom(game);
+            await game.NotifySendPlayersInRoom();
         }
 
         public async Task UpdateGameSettings(GameSettings settings)
         {
             var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
-            if (!Guid.TryParse(gameId, out Guid gameIdGuid))
-            {
-                return;
-            }
-            var game = GamesState.Games.FirstOrDefault(g => g.GameId == gameIdGuid);
+            var game = _gameStore.Get(gameId);
             if (game != null)
             {
-                var player = (Player?)Context.Items["player"];
-                if (player != null)
+                var player = (Player)Context.Items["player"]!;
+                if (game.Players.First(x => !x.Player.IsRemoved).Player != player)
                 {
-                    //Check if player is top player
-                    if (game.Players.First(x => !x.Player.IsRemoved).Player != player)
-                    {
-                        return;
-                    }
-                    game.Settings.DrawingTimeSeconds = settings.DrawingTimeSeconds;
-                    game.Settings.VotingTimeSeconds = settings.VotingTimeSeconds;
-                    game.Settings.Rounds = settings.Rounds;
-                    await _notifier.GameSettingsUpdated(game);
+                    return;
                 }
+                game.Settings.DrawingTimeSeconds = settings.DrawingTimeSeconds;
+                game.Settings.VotingTimeSeconds = settings.VotingTimeSeconds;
+                game.Settings.Rounds = settings.Rounds;
+                await game.NotifyGameSettingsUpdated();
             }
         }
-
     }
 }
