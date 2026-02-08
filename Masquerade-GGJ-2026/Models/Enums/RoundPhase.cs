@@ -1,4 +1,4 @@
-﻿namespace Masquerade_GGJ_2026.Models
+﻿namespace Masquerade_GGJ_2026.Models.Enums
 {
     public enum RoundPhase
     {

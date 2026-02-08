@@ -1,4 +1,5 @@
 ﻿using Masquerade_GGJ_2026.Models;
+using Masquerade_GGJ_2026.Models.Enums;
 using Masquerade_GGJ_2026.Models.Messages;
 
 namespace Masquerade_GGJ_2026.Notifiers
@@ -11,7 +12,7 @@ namespace Masquerade_GGJ_2026.Notifiers
         {
             return new ScoreboardMessage
             {
-                Players = game.Players
+                Players = game.Players.OrderByDescending(p => p.Score).ToList()
             };
         }
 
@@ -22,7 +23,7 @@ namespace Masquerade_GGJ_2026.Notifiers
             switch (game.PhaseDetails.CurrentPhase)
             {
                 case RoundPhase.CutsceneTheChoice:
-                    shouldPlayAlternativeScene = game.IsBadEnding();
+                    shouldPlayAlternativeScene = game.GetGameResult() == GameResult.BadWin;
                     break;
             }
 

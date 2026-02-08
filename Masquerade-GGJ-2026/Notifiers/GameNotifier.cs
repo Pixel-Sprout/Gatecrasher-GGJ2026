@@ -1,5 +1,6 @@
 ﻿using Masquerade_GGJ_2026.Hubs;
 using Masquerade_GGJ_2026.Models;
+using Masquerade_GGJ_2026.Models.Enums;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Masquerade_GGJ_2026.Notifiers
@@ -7,9 +8,9 @@ namespace Masquerade_GGJ_2026.Notifiers
     public class GameNotifier : BaseNotifier
     {
         private readonly IHubContext<GameHub> _hub;
-        private readonly ILogger<GameHub> _log;
+        private readonly ILogger<GameNotifier> _log;
 
-        public GameNotifier(ILogger<GameHub> log, IHubContext<GameHub> hub)
+        public GameNotifier(ILogger<GameNotifier> log, IHubContext<GameHub> hub)
         {
             _log = log;
             _hub = hub;

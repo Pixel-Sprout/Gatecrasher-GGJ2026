@@ -6,10 +6,10 @@ namespace Masquerade_GGJ_2026.Orchestrators
 {
     public class GameFactory
     {
-        private readonly ILogger<GameHub> _log;
+        private readonly ILogger<GameFactory> _log;
         private readonly GameNotifier _notifier;
 
-        public GameFactory(ILogger<GameHub> log, GameNotifier notifier)
+        public GameFactory(ILogger<GameFactory> log, GameNotifier notifier)
         {
             _log = log;
             _notifier = notifier;

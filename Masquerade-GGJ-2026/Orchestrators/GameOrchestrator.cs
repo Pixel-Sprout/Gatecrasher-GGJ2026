@@ -1,10 +1,17 @@
 ﻿using Masquerade_GGJ_2026.Models;
+using Masquerade_GGJ_2026.Models.Enums;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
     public class GameOrchestrator
     {
         private readonly Random _random = new Random();
+        private readonly ILogger<GameOrchestrator> _log;
+
+        public GameOrchestrator(ILogger<GameOrchestrator> log)
+        {
+            _log = log;
+        }
 
         public void GenerateNewMaskRequirements(Game game)
         {
@@ -45,7 +52,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 "A mask that feels serious and ceremonial.",
                 "A mask that feels playful but slightly chaotic.",
                 "A mask that feels quiet and watchful.",
-            };
+            }; //TODO: Move to configuration file or database
 
             game.AllMaskRequirements.Clear();
             for (int i = 0; i != game.Settings.TotalNumberOfRequirements; i++)
@@ -59,6 +66,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
                 } while (game.AllMaskRequirements.Contains(selectedDescription));
                 game.AllMaskRequirements.Add(selectedDescription);
             }
+            _log.LogInformation($"Generated new mask requirements for game {game.GameId}: {string.Join(", ", game.AllMaskRequirements)}");
         }
 
         public async Task NextPhase(Game game)
@@ -96,59 +104,43 @@ namespace Masquerade_GGJ_2026.Orchestrators
             }
 
             await game.NotifyPhaseChanged();
+            _log.LogInformation($"Game {game.GameId} moved to phase {phaseDetails.CurrentPhase}");
         }
 
         private void GrantPoints(Game game)
         {
-            try
+            var badPlayer = game.Players.First(p => p.IsEvil);
+            foreach (var player in game.Players)
             {
-                var badPlayer = game.Players.First(p => p.IsEvil);
-                var groupedVotes = game.Players.GroupBy(p => p.VotedPlayerId).OrderByDescending(g => g.Count());
-                var kickedPlayers = groupedVotes.Where(g=>g.Count() == groupedVotes.Max(x=>x.Count())).Select(x => x.Key);
-                if (kickedPlayers.Count() > 1)
+                switch (game.GetGameResult())
                 {
-                    //TIE
-                    foreach (var player in game.Players)
-                    {
-                        if (player != badPlayer)
+                    case GameResult.BadWin:
+                        if (player.IsEvil)
                         {
-                            if (player.VotedPlayerId == badPlayer.Player.UserId)
-                            {
-                                player.Score += 5;
-                            }
+                            player.Score += 20;
+                            _log.LogInformation($"Player {player.Player.UserId} (Evil) wins and receives 20 points.");
                         }
-                        if (player == badPlayer)
+                        break;
+                    case GameResult.GoodWin:
+                        if (!player.IsEvil)
                         {
-                            badPlayer.Score += 10;
+                            player.Score += 5;
+                            _log.LogInformation($"Player {player.Player.UserId} (Good) wins and receives 5 points.");
                         }
-                    }
+                        break;
+                    case GameResult.Tie:
+                        if (player.IsEvil)
+                        {
+                            player.Score += 10;
+                            _log.LogInformation($"Player {player.Player.UserId} (Evil) ties and receives 10 points.");
+                        }
+                        break;
                 }
-                else
+                if (player != badPlayer && player.VotedPlayerId == badPlayer.Player.UserId)
                 {
-                    var kickedPlayerId = kickedPlayers.First();
-                    foreach (var player in game.Players)
-                    {
-                        if (player != badPlayer)
-                        {
-                            if (player.VotedPlayerId == badPlayer.Player.UserId)
-                            {
-                                player.Score += 5;
-                            }
-                            if (badPlayer.Player.UserId == kickedPlayerId)
-                            {
-                                player.Score += 5;
-                            }
-                        }
-                        if (player == badPlayer && kickedPlayerId != badPlayer.Player.UserId)
-                        {
-                            badPlayer.Score += 20;
-                        }
-                    }
+                    player.Score += 5;
+                    _log.LogInformation($"Player {player.Player.UserId} (Good) voted right and receives 5 points.");
                 }
-            }
-            catch (Exception ex)
-            {
-                //_notifier.SendExceptionMessage(game, ex.Message, ex.StackTrace ?? string.Empty).GetAwaiter().GetResult();
             }
         }
 
@@ -157,6 +149,7 @@ namespace Masquerade_GGJ_2026.Orchestrators
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(delayInSeconds), token);
+                _log.LogInformation($"Phase timeout reached for game {game.GameId} in phase {game.PhaseDetails.CurrentPhase}");
                 EndPhase(game, "Timeout");
             }
             catch (TaskCanceledException) { }

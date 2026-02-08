@@ -1,4 +1,5 @@
 using Masquerade_GGJ_2026.Models;
+using Masquerade_GGJ_2026.Models.Enums;
 using Masquerade_GGJ_2026.Models.Messages;
 using Masquerade_GGJ_2026.Orchestrators;
 using Masquerade_GGJ_2026.Repositories;
@@ -61,6 +62,7 @@ namespace Masquerade_GGJ_2026.Hubs
                             await player.NotifyPlayerState();
                             await player.NotifyPhaseChanged(game);
                             await game.NotifySendPlayersInRoom();
+                            _log.LogInformation("Player {UserId} reconnected to a game {GameId}", player.UserId, game.GameId);
                         }
                     }
                 }
@@ -74,7 +76,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 Context.Items["username"] = username;
                 Context.Items["player"] = player;
                 await player.NotifyPlayerState();
-                _log.LogInformation("User connected to GameHub: {Username} [{UserToken}], ConnectionId: {ConnectionId}", username, userToken, Context.ConnectionId);
+                _log.LogInformation("User {UserId} ({Username}) connected", player.UserId, player.Username);
             }
 
             await base.OnConnectedAsync();
@@ -83,18 +85,19 @@ namespace Masquerade_GGJ_2026.Hubs
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
-            _log.LogInformation("User disconnected from GameHub: {Username}, ConnectionId: {ConnectionId}", username, Context.ConnectionId);
+            var player = (Player)Context.Items["player"]!;
+            _log.LogInformation("User {UserId} disconnected", player.UserId);
 
             // If the connection was in a game group, notify that group and remove the connection
             if (Context.Items.ContainsKey("gameId"))
             {
                 var gameId = Context.Items["gameId"]?.ToString();
                 var game = _gameStore.Get(gameId);
-                var player = (Player)Context.Items["player"]!;
-                if (game != null && player != null)
+                if (game != null)
                 {
                     await DetachPlayerFromGame(player, game);
                     await game.NotifyUserLeft(player);
+                    _log.LogInformation("Player {UserId} left Game {GameId} due to disconnection", player.UserId, gameId);
                 }
             }
             await base.OnDisconnectedAsync(exception);
@@ -111,6 +114,7 @@ namespace Masquerade_GGJ_2026.Hubs
                         GameName = g.GameName,
                         CurrentPhase = g.PhaseDetails.CurrentPhase.ToString()
                     }).ToArray();
+            _log.LogInformation("User {UserId} requested game list. Returning {GameCount} games.", player.UserId, gameRooms.Length);
             await player.NotifyAllGameRooms(gameRooms);
         }
 
@@ -121,9 +125,11 @@ namespace Masquerade_GGJ_2026.Hubs
         /// </summary>
         public async Task JoinGame(string gameId)
         {
+            var player = (Player)Context.Items["player"]!;
             //Already in a different game
             if (Context.Items["gameId"] != null)
             {
+                _log.LogWarning("Player {UserId} attempted to join Game {GameId} but is already in Game {CurrentGameId}", player.UserId, gameId, Context.Items["gameId"]);
                 await Clients.Caller.SendAsync("Error", "Already in a game. Leave current game before joining another.");
                 return;
             }
@@ -131,6 +137,7 @@ namespace Masquerade_GGJ_2026.Hubs
             var game = _gameStore.Get(gameId);
             if (game == null || game.PhaseDetails.CurrentPhase != RoundPhase.Lobby)
             {
+                _log.LogWarning("Player {UserId} attempted to join Game {GameId} but it was not found or already started", player.UserId, gameId);
                 await Clients.Caller.SendAsync("Error", "Game not found or already started.");
                 return;
             }
@@ -138,11 +145,11 @@ namespace Masquerade_GGJ_2026.Hubs
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
             Context.Items["gameId"] = gameId;
 
-            var player = (Player)Context.Items["player"]!;
 
             await game.NotifyUserJoined(player);
             await player.NotifyPhaseChanged(game);
             await game.NotifySendPlayersInRoom();
+            _log.LogInformation("Player {UserId} joined Game {GameId}", player.UserId, gameId);
         }
 
         public async Task<string> CreateAndJoinGame(string gameName)
@@ -164,9 +171,10 @@ namespace Masquerade_GGJ_2026.Hubs
         /// </summary>
         public async Task LeaveGame()
         {
+            var player = (Player)Context.Items["player"]!;
+            _log.LogInformation("Player {UserId} requested to leave their current game", player.UserId);
             var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
             Context.Items.Remove("gameId");
-            var player = (Player)Context.Items["player"]!;
 
             var game = _gameStore.Get(gameId);
             if (game != null)
@@ -185,7 +193,6 @@ namespace Masquerade_GGJ_2026.Hubs
                 return;
             }
 
-            var gameIdGuid = player.lastAttachedGameId;
             var game = _gameStore.Get(player.lastAttachedGameId);
             if (game != null)
             {
@@ -199,7 +206,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 }
                 await game.NotifyPlayerReady(player);
                 await game.NotifySendPlayersInRoom();
-                _log.LogInformation("Player {Username} in Game {GameId} is ready={ready}", player.Username, gameIdGuid, player.IsReady);
+                _log.LogInformation("Player {UserId} in Game {GameId} is ready={ready}", player.UserId, game.GameId, player.IsReady);
                 // Check if all players are ready
                 var nonRemovedPlayers = game.Players.Where(p => !p.Player.IsRemoved).ToArray();
                 if (nonRemovedPlayers.All(p => p.Player.IsReady)
@@ -216,13 +223,13 @@ namespace Masquerade_GGJ_2026.Hubs
                         }
                     }
 
-                    _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", gameIdGuid);
+                    _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", game.GameId);
                     await _orchestrator.EndPhase(game, "All players ready");
                 }
             }
             else
             {
-                _log.LogWarning("PlayerReady called but game not found: {gameId}", gameIdGuid);
+                _log.LogWarning("PlayerReady called but game not found: {gameId}", player.lastAttachedGameId);
             }
         }
 
@@ -237,7 +244,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 if (playerState != null)
                 {
                     playerState.VotedPlayerId = selectedPlayerId;
-                    _log.LogInformation("Player {Username} in Game {GameId} casted vote", player.Username, gameId);
+                    _log.LogInformation("Player {UserId} in Game {GameId} casted vote for {SelectedPlayerId}", player.UserId, gameId, selectedPlayerId);
                 }
             }
         }
@@ -253,7 +260,8 @@ namespace Masquerade_GGJ_2026.Hubs
                 }
                 game.Players.Clear();
                 _gameStore.Remove(game.GameId);
-                Context.Items.Remove("player");
+                _log.LogInformation("Game {GameId} removed from store because all players left", game.GameId);
+                Context.Items.Remove("player"); //TODO: Think of a way where we don't remove players from the system if they went back to rooms list
                 return;
             }
 
@@ -269,11 +277,13 @@ namespace Masquerade_GGJ_2026.Hubs
                 var player = (Player)Context.Items["player"]!;
                 if (game.Players.First(x => !x.Player.IsRemoved).Player != player)
                 {
+                    _log.LogWarning("Player {UserId} attempted to update settings for Game {GameId} but is not the host", player.UserId, gameId);
                     return;
                 }
                 game.Settings.DrawingTimeSeconds = settings.DrawingTimeSeconds;
                 game.Settings.VotingTimeSeconds = settings.VotingTimeSeconds;
                 game.Settings.Rounds = settings.Rounds;
+                _log.LogInformation("Player {UserId} updated settings for Game {GameId}", player.UserId, gameId);
                 await game.NotifyGameSettingsUpdated();
             }
         }

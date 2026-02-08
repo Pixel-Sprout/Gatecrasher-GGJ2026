@@ -1,4 +1,5 @@
-﻿using Masquerade_GGJ_2026.Models.Messages;
+﻿using Masquerade_GGJ_2026.Models.Enums;
+using Masquerade_GGJ_2026.Models.Messages;
 using Masquerade_GGJ_2026.Notifiers;
 
 namespace Masquerade_GGJ_2026.Models
@@ -22,12 +23,23 @@ namespace Masquerade_GGJ_2026.Models
             Notifier = notifier;
         }
 
-        public bool IsBadEnding()
+        public GameResult GetGameResult()
         {
             var badPlayer = Players.First(p => p.IsEvil);
             var groupedVotes = Players.GroupBy(p => p.VotedPlayerId).ToList();
             var kickedPlayers = groupedVotes.Where(g => g.Count() == groupedVotes.Max(x => x.Count())).Select(g => g.Key);
-            return kickedPlayers.Count() != 1 || kickedPlayers.Single() != badPlayer.Player.UserId;
+            if (kickedPlayers.Count() != 1)
+            {
+                return GameResult.Tie;
+            }
+            else if (kickedPlayers.Single() != badPlayer.Player.UserId)
+            {
+                return GameResult.BadWin;
+            }
+            else
+            {
+                return GameResult.GoodWin;
+            }
         }
 
         public PlayerGameState GetPlayerState(Player player)

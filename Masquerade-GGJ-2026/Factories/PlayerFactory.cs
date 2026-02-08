@@ -1,16 +1,14 @@
-using Masquerade_GGJ_2026.Hubs;
 using Masquerade_GGJ_2026.Models;
 using Masquerade_GGJ_2026.Notifiers;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Masquerade_GGJ_2026.Orchestrators
 {
     public class PlayerFactory
     {
-        private readonly ILogger<GameHub> _log;
+        private readonly ILogger<PlayerFactory> _log;
         private readonly PlayerNotifier _notifier;
 
-        public PlayerFactory(ILogger<GameHub> log, PlayerNotifier notifier)
+        public PlayerFactory(ILogger<PlayerFactory> log, PlayerNotifier notifier)
         {
             _log = log;
             _notifier = notifier;

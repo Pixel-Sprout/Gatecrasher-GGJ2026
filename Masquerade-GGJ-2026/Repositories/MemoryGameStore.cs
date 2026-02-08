@@ -14,8 +14,12 @@ namespace Masquerade_GGJ_2026.Repositories
             _gameFactory = gameFactory;
         }
 
-        public Game Get(string gameId)
+        public Game? Get(string? gameId)
         {
+            if (string.IsNullOrEmpty(gameId) || !_games.ContainsKey(gameId))
+            {
+                return null;
+            }
             return _games[gameId];
         }
 
