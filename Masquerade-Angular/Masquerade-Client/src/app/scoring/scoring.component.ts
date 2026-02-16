@@ -11,7 +11,8 @@ interface ScoringPlayer {
   score: number;
   selectedDifferentMaskId?: string | null;
   isReady: boolean;
-  approved?: boolean; // whether they chose the "different" mask (for demo)
+  guessedRight: boolean;
+  isEvil: boolean
 }
 
 @Component({
@@ -25,11 +26,6 @@ export class ScoringComponent implements OnInit {
   private appState = inject(AppStateService);
   private svc = inject(GameHubService);
   public players = signal<ScoringPlayer[]>([]);
-
-
-  get filteredPlayers(): ScoringPlayer[] {
-    return this.players().filter(p => p.approved);
-  }
  
   ngOnInit(): void {
     this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
@@ -38,23 +34,29 @@ export class ScoringComponent implements OnInit {
       }, 800)
     );
 
+    // Update players' ready state immutably so the signal notifies consumers
     this.svc.onReceivePlayersInTheRoom().subscribe(msg => {
-      this.players().forEach(p => p.isReady = msg.filter(m => m.userId == p.id)[0].isReady) 
-      this.scoreboard; }
-    );
+      const updated = this.players().map(p => {
+        const found = msg.find((m: any) => m.userId === p.id);
+        return { ...p, isReady: found ? !!found.isReady : p.isReady };
+      });
+      this.players.set(updated);
+    });
 
-    this.appState.scoringMessageSignal().players.forEach((p: any) => {
-      this.players().push({
-        id: p.player.userId,
-        name: p.player.username,
-        role: this.appState.scoringMessageSignal().players[0] == p.player ? 'Admin' : 'Mask Maker',
-        score: p.score,
-        selectedDifferentMaskId: p.votedPlayerId,
-        isReady: p.player.isReady,
-        approved: p.votedPlayerId === null ? true : p.votedPlayerId === p.player.userId // for demo purposes
-        });
-      }
-    );
+    const evilPlayerId = this.appState.scoringMessageSignal().players.find((p: any) => p.isEvil)?.player.userId;
+
+    // Populate `players` signal immutably from the scoring message
+    const initialPlayers = this.appState.scoringMessageSignal().players.map((p: any, idx: number) => ({
+      id: p.player.userId,
+      name: p.player.username,
+      role: idx === 0 ? 'Admin' : 'Mask Maker',
+      score: p.score,
+      selectedDifferentMaskId: p.votedPlayerId,
+      isReady: !!p.player.isReady,
+      guessedRight: p.votedPlayerId === evilPlayerId,
+      isEvil: !!p.isEvil
+    }));
+    this.players.set(initialPlayers);
   }
 
   // compute sorted scoreboard

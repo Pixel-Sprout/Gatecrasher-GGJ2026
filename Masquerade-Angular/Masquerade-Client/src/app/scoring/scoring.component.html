@@ -24,8 +24,11 @@
 
             <div class="player-right">
               <div class="player-score">{{ p.score }}</div>
-              @if ( p.approved) {
+              @if ( p.guessedRight) {
                 <div class="player-approved">✓</div>
+              }
+              @if ( p.isEvil) {
+                <div class="player-evil">👹</div>
               }
             </div>
           </li>
@@ -41,10 +44,6 @@
           <div class="summary-row">
             <span class="label">Players:</span>
             <span class="value">{{ players().length }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Approved picks:</span>
-            <span class="value">{{ filteredPlayers.length }}</span>
           </div>
         </div>
 
