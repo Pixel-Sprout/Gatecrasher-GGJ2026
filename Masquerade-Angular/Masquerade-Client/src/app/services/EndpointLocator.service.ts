@@ -10,9 +10,9 @@ export class EndpointLocator{
 
   constructor(@Inject(WINDOW) private window: Window) {
     if(window.location.host != "localhost:4200"){
-      this.hubEndpoint = `https://gatecrasher.mufinek.pl/`;
-      this.apiEndpoint = `https://gatecrasher.mufinek.pl/`;
-      this.joinUrlBase = `https://gatecrasher.mufinek.pl/`;
+      this.hubEndpoint = `https://gatecrasher.mufinek.pl`;
+      this.apiEndpoint = `https://gatecrasher.mufinek.pl`;
+      this.joinUrlBase = `https://gatecrasher.mufinek.pl`;
     }
   }
   getSignalRHubEndpoint():string{
