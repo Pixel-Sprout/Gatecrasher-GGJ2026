@@ -30,6 +30,9 @@
     <!-- Left Column: Canvas + Tools -->
     <div class="left-column">
       <div class="canvas-wrapper">
+        <!-- Preload the silhouette so the browser caches it for future views -->
+        <img src="imgs/face_silhouette.jpg" alt="" style="display:none;" loading="eager" />
+
         <canvas
           #maskCanvas
           id="maskCanvas"
