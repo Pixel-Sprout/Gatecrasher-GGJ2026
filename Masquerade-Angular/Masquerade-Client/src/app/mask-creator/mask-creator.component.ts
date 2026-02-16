@@ -155,27 +155,36 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
     // Get devicePixelRatio for high-DPI displays
     const dpr = window.devicePixelRatio || 1;
 
-    // Set logical CSS size
-    this.cssWidth = canvasSize;
-    this.cssHeight = canvasSize;
+    // Prefer the wrapper size so background image and canvas match
+    const wrapper = this.canvas.parentElement as HTMLElement | null;
+    if (wrapper) {
+      const rect = wrapper.getBoundingClientRect();
+      this.cssWidth = Math.max(1, Math.round(rect.width));
+      this.cssHeight = Math.max(1, Math.round(rect.height));
+    } else {
+      this.cssWidth = canvasSize;
+      this.cssHeight = canvasSize;
+    }
 
-    // Set canvas element CSS display size
-    this.canvas.style.width = `${canvasSize}px`;
-    this.canvas.style.height = `${canvasSize}px`;
+    // Set canvas CSS display size to match wrapper (CSS pixels)
+    this.canvas.style.width = `${this.cssWidth}px`;
+    this.canvas.style.height = `${this.cssHeight}px`;
+    // background image is provided via CSS on the wrapper; no bg canvas needed
 
     // Set actual canvas pixel buffer size (scale by DPR)
-    this.canvas.width = canvasSize * dpr;
-    this.canvas.height = canvasSize * dpr;
+    this.canvas.width = Math.round(this.cssWidth * dpr);
+    this.canvas.height = Math.round(this.cssHeight * dpr);
 
     this.context = this.canvas.getContext('2d')!;
-    // Scale context to handle DPR so drawing coordinates match CSS pixels
-    this.context.scale(dpr, dpr);
+    // Map CSS pixels to device pixels for high-DPI displays
+    this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
     // ensure default composite mode
     this.context.globalCompositeOperation = 'source-over';
 
-    // Set white background (use CSS pixel sizes)
-    this.context.fillStyle = '#ffffff';
-    this.context.fillRect(0, 0, this.cssWidth, this.cssHeight);
+    // Drawing canvas should be transparent overlay (no white fill here)
+
+    // Prepare background canvas: draw white background and optional silhouette
+    // background image handled by CSS; a hidden <img> in template primes cache
 
     // Show instructions initially
     this.showInstructions = true;
@@ -266,9 +275,10 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
 
   clearCanvas(): void {
     if (!this.context) return;
-    this.context.fillStyle = '#ffffff';
-    // clear using CSS pixel dimensions (context is already scaled)
-    this.context.fillRect(0, 0, this.cssWidth || this.canvas.width, this.cssHeight || this.canvas.height);
+    // Clear only the drawing canvas (leave background canvas intact)
+    const w = this.cssWidth || this.canvas.width;
+    const h = this.cssHeight || this.canvas.height;
+    this.context.clearRect(0, 0, w, h);
 
     // Show instructions again after clearing
     this.showInstructions = true;
@@ -280,8 +290,21 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
       console.warn('Please draw your mask before proceeding.');
       return;
     }// Get canvas data as image
-    const imageData = this.canvas.toDataURL('image/png');
-    console.log('Mask drawing saved:', imageData);
+    // Compose the drawing canvas onto a white temporary canvas so the
+    // silhouette/background is NOT included in the serialized image.
+    const temp = document.createElement('canvas');
+    // use the full pixel buffer size to preserve resolution
+    temp.width = this.canvas.width;
+    temp.height = this.canvas.height;
+    const tctx = temp.getContext('2d');
+    if (!tctx) return;
+    // Fill white background (covering full pixel buffer)
+    tctx.fillStyle = '#ffffff';
+    tctx.fillRect(0, 0, temp.width, temp.height);
+    // Draw the drawing canvas on top (this.canvas may be scaled)
+    tctx.drawImage(this.canvas, 0, 0, temp.width, temp.height);
+    const imageData = temp.toDataURL('image/png');
+    console.log('Mask drawing saved (silhouette excluded):', imageData);
 
     await this.api.postDrawing(this.svc.playerId, this.svc.gameId, imageData);
 
