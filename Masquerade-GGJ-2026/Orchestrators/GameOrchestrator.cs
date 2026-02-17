@@ -1,7 +1,7 @@
 ﻿using Masquerade_GGJ_2026.Models;
 using Masquerade_GGJ_2026.Models.Enums;
 
-namespace Masquerade_GGJ_2026.Orchestrators
+namespace Masquerade_GGJ_2026.Factories
 {
     public class GameOrchestrator
     {

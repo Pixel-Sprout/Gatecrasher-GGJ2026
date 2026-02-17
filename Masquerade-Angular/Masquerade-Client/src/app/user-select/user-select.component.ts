@@ -6,6 +6,7 @@ import {GameHubService, GameRoom} from '../services/gamehub.service';
 import {AppStateService} from '../services/app-state.service';
 import {GameState} from '../types/game-state.enum';
 import { WINDOW } from '../window.provider';
+import {RoomHubService} from '../services/roomhub.service';
 
 @Component({
   selector: 'app-user-select',
@@ -15,8 +16,9 @@ import { WINDOW } from '../window.provider';
   styleUrls: ['./user-select.component.scss']
 })
 export class UserSelectComponent implements OnInit, OnDestroy {
-  private svc = inject(GameHubService);
-  protected readonly appState = inject(AppStateService);
+  private room = inject(RoomHubService)
+  //private svc = inject(GameHubService);
+  //protected readonly appState = inject(AppStateService);
 
   roomsSource = new BehaviorSubject<GameRoom[]>([]);
   rooms = this.roomsSource.asObservable();
@@ -33,21 +35,21 @@ export class UserSelectComponent implements OnInit, OnDestroy {
     console.log(this.requestedRoomId);
   }
   ngOnInit(): void {
-    const s = this.svc.receiveGameRooms$.subscribe(rooms => {
+    /*const s = this.svc.receiveGameRooms$.subscribe(rooms => {
       var reqestedRoom = rooms.find(r => r.gameId == this.requestedRoomId);
       if(reqestedRoom){
         this.joinRoom(reqestedRoom);
       }
 
       this.roomsSource.next(rooms);
-    });
-    this.subs.add(s);
+    });*/
+    //this.subs.add(s);
 
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
+    /*this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
       setTimeout(() => {
         this.appState.setState(phase as GameState, message);
       }, 800)
-    );
+    );*/
   }
 
   ngOnDestroy(): void {
@@ -59,7 +61,7 @@ export class UserSelectComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.svc.connect(this.userName).then((success) => {
+    /*this.svc.connect(this.userName).then((success) => {
       if(success) {
         this.errorMessage.set(null);
         // Wywołanie na serwerze powinno spowodować, że receiveGameRooms$ wyemituje listę
@@ -68,7 +70,7 @@ export class UserSelectComponent implements OnInit, OnDestroy {
       }else{
         this.errorMessage.set('Error connecting to server.');
       }
-    });
+    });*/
   }
 
   disconnect() {
@@ -76,22 +78,22 @@ export class UserSelectComponent implements OnInit, OnDestroy {
 
     this.errorMessage.set(null);
 
-    this.svc.disconnect().then(() => {
+    /*this.svc.disconnect().then(() => {
       console.log(this.userName + ' disconnected from the game hub.');
-    });
+    });*/
   }
 
   joinRoom(room: GameRoom) {
     if (!this.connected) return;
 
-    this.svc.joinGame(room.gameId)
+    //this.svc.joinGame(room.gameId)
   }
 
   createRoom() {
     if (!this.connected) return;
     const name = (this.newRoomName || '').trim();
     if (!name) return;
-    this.svc.CreateAndJoinGame(name);
+    //this.svc.CreateAndJoinGame(name);
   }
 
   trackByGameId(index: number, room: GameRoom) {

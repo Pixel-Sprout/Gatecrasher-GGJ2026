@@ -1,18 +1,13 @@
 ﻿using Masquerade_GGJ_2026.Models;
-using Masquerade_GGJ_2026.Orchestrators;
+using Masquerade_GGJ_2026.Factories;
 using System.Collections.Concurrent;
 
 namespace Masquerade_GGJ_2026.Repositories
 {
-    public class MemoryGameStore : IGameStore
+    internal class MemoryGameStore : IGameStore
     {
         private readonly ConcurrentDictionary<string, Game> _games = new();
-        private readonly GameFactory _gameFactory;
 
-        public MemoryGameStore(GameFactory gameFactory) 
-        {
-            _gameFactory = gameFactory;
-        }
 
         public Game? Get(string? gameId)
         {
@@ -28,10 +23,9 @@ namespace Masquerade_GGJ_2026.Repositories
             return _games.Values;
         }
 
-        public Game Create(string? gameName)
+        public Game Create(Game game)
         {
-            Game newGame = _gameFactory.Create(gameName);
-            return _games.GetOrAdd(newGame.GameId, _ => newGame);
+            return _games.GetOrAdd(game.GameId, _ => game);
         }
 
         public bool Remove(string gameId)

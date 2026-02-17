@@ -118,10 +118,11 @@ export class GameHubService {
     await this.connection.stop();
   }
 
-  async getAllGameIds() {
+  //Will be moved to side call
+  /*async getAllGameIds() {
     if (!this.connection) throw new Error('Not connected');
     await this.connection.invoke('GetAllGameIds');
-  }
+  }*/
 
   async getAvailableGameRooms(): Promise<Observable<GameRoom[]>> {
     if (!this.connection) throw new Error('Not connected');

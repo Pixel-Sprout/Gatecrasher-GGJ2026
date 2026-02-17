@@ -5,17 +5,9 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Masquerade_GGJ_2026.Notifiers
 {
-    public class GameNotifier : BaseNotifier
+    public class GameNotifier(ILogger<GameNotifier> _log,
+        IHubContext<GameHub> _hub) : BaseNotifier
     {
-        private readonly IHubContext<GameHub> _hub;
-        private readonly ILogger<GameNotifier> _log;
-
-        public GameNotifier(ILogger<GameNotifier> log, IHubContext<GameHub> hub)
-        {
-            _log = log;
-            _hub = hub;
-        }
-
         public async Task UserJoined(string gameId, Player player)
         {
             player.lastAttachedGameId = gameId;

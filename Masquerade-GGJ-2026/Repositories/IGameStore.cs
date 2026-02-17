@@ -6,7 +6,7 @@ namespace Masquerade_GGJ_2026.Repositories
     {
         Game? Get(string? gameId);
         IEnumerable<Game> GetAllGames();
-        Game Create(string? gameName);
+        Game Create(Game game);
         bool Remove(string gameId);
     }
 }
