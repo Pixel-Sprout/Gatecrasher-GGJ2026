@@ -86,6 +86,14 @@ export class LobbyComponent implements OnInit {
     this.window.navigator.clipboard.writeText(url);
   }
 
+  kickPlayer(playerId: string): void {
+    // Only allow the admin (first player) to kick others
+    if (!this.players() || this.players().length === 0) return;
+    if (this.players()[0].id !== this.currentPlayerId) return;
+    if (playerId === this.currentPlayerId) return;
+    this.svc.kickPlayer(playerId).catch(err => console.error('Kick failed', err));
+  }
+
   // Apply settings received from backend (call this from your subscription)
   applySettings(settings: LobbySettings) {
     if (!settings) return;

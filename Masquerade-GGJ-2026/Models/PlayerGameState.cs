@@ -7,5 +7,6 @@
         public string? EncodedMask { get; set; }
         public string? VotedPlayerId { get; set; }
         public int Score { get; set; }
+        public bool IsRemoved { get; set; }
     }
 }

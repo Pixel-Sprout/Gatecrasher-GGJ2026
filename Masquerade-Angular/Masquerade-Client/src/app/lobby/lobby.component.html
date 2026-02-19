@@ -17,6 +17,7 @@
             <span class="ready-status">
               {{ player.ready ? '✓ Ready' : '⏳ Waiting' }}
             </span>
+            <button class="btn btn-kick" *ngIf="players()[0].id === currentPlayerId && player.id !== currentPlayerId" (click)="kickPlayer(player.id)">Kick</button>
           </div>
         }
       </div>
@@ -63,7 +64,7 @@
 
   <!-- Footer / Actions -->
   <div class="footer">
-    <button class="btn btn-leave" (click)="leaveGame()" [disabled]>Leave Game</button>
+    <button class="btn btn-leave" (click)="leaveGame()">Leave Game</button>
     <button class="btn btn-ready" (click)="toggleReady()" [disabled]="currentPlayerReady">{{ currentPlayerReady ? 'You are Ready!' : 'Ready' }}</button>
   </div>
 </div>

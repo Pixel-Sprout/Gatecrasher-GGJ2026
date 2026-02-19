@@ -35,6 +35,12 @@ namespace Masquerade_GGJ_2026.Notifiers
             await _hub.Clients.Client(player.ConnectionId).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, message);
         }
 
+        public async Task GetBackToUserSelect(Player player, Game game, string reason)
+        {
+            _log.LogInformation("Player {UserId} left a game {GameId} due to {Reason} reason", player.UserId, game.GameId, reason);
+            await _hub.Clients.Client(player.ConnectionId).SendAsync("PhaseChanged", RoundPhase.UserSelect, reason);
+        }
+
         public async Task PlayerState(Player player)
         {
             await _hub.Clients.Client(player.ConnectionId).SendAsync("PlayerState", player.Username, player.UserId);

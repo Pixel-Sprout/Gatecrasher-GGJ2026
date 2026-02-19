@@ -144,6 +144,7 @@ export class GameHubService {
   async leaveGame() {
     if (!this.connection) throw new Error('Not connected');
     await this.connection.invoke('LeaveGame');
+    this.gameId = '';
   }
 
   async ready() {
@@ -159,5 +160,10 @@ export class GameHubService {
   async updateGameSettings(settings: any) {
     if (!this.connection) throw new Error('Not connected');
     await this.connection.invoke('UpdateGameSettings', settings);
+  }
+
+  async kickPlayer(playerId: string) {
+    if (!this.connection) throw new Error('Not connected');
+    await this.connection.invoke('KickPlayer', playerId);
   }
 }

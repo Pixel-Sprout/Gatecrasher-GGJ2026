@@ -76,7 +76,7 @@ namespace Masquerade_GGJ_2026.Notifiers
         public async Task SendPlayersInRoom(Game game)
         {
             await _hub.Clients.Group(game.GameId).SendAsync("PlayersInTheRoom",
-                game.Players.Where(p => !p.Player.IsRemoved).Select(p => p.Player).ToList());
+                game.Players.Where(p => !p.IsRemoved).Select(p => p.Player).ToList());
         }
 
         public async Task GameSettingsUpdated(Game game)

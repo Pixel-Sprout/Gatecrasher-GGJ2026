@@ -42,8 +42,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 if (_players.TryGetValue(userToken, out Player? player))
                 {
                     player.ConnectionId = Context.ConnectionId;
-                    player.IsRemoved = false;
-
+                    player.IsConnected = true;
                     if (!string.IsNullOrEmpty(player.lastAttachedGameId))
                     {
                         Context.Items["gameId"] = player.lastAttachedGameId;
@@ -56,6 +55,10 @@ namespace Masquerade_GGJ_2026.Hubs
                             if (playerState == null)
                             {
                                 game.Players.Add(new PlayerGameState { Player = player });
+                            }
+                            else
+                            {
+                                playerState.IsRemoved = false;
                             }
 
                             await game.NotifyUserJoined(player);
@@ -71,8 +74,6 @@ namespace Masquerade_GGJ_2026.Hubs
                     player = _playerFactory.Create(userToken, Context.ConnectionId, username);
                     _players.Add(userToken, player);
                 }
-
-                player.IsRemoved = false;
                 Context.Items["username"] = username;
                 Context.Items["player"] = player;
                 await player.NotifyPlayerState();
@@ -86,6 +87,7 @@ namespace Masquerade_GGJ_2026.Hubs
         {
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
             var player = (Player)Context.Items["player"]!;
+            player.IsConnected = false;
             _log.LogInformation("User {UserId} disconnected", player.UserId);
 
             // If the connection was in a game group, notify that group and remove the connection
@@ -97,6 +99,7 @@ namespace Masquerade_GGJ_2026.Hubs
                 {
                     await DetachPlayerFromGame(player, game);
                     await game.NotifyUserLeft(player);
+                    Context.Items.Remove("player");
                     _log.LogInformation("Player {UserId} left Game {GameId} due to disconnection", player.UserId, gameId);
                 }
             }
@@ -172,6 +175,7 @@ namespace Masquerade_GGJ_2026.Hubs
         public async Task LeaveGame()
         {
             var player = (Player)Context.Items["player"]!;
+            player.lastAttachedGameId = null;
             _log.LogInformation("Player {UserId} requested to leave their current game", player.UserId);
             var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
             Context.Items.Remove("gameId");
@@ -180,7 +184,9 @@ namespace Masquerade_GGJ_2026.Hubs
             if (game != null)
             {
                 await game.NotifyUserLeft(player);
+                game.Players.RemoveAll(p=>p.Player == player);
                 await DetachPlayerFromGame(player, game);
+                await player.NotifyGetBackToUserSelect(game, "Left the game");
             }
         }
 
@@ -208,19 +214,23 @@ namespace Masquerade_GGJ_2026.Hubs
                 await game.NotifySendPlayersInRoom();
                 _log.LogInformation("Player {UserId} in Game {GameId} is ready={ready}", player.UserId, game.GameId, player.IsReady);
                 // Check if all players are ready
-                var nonRemovedPlayers = game.Players.Where(p => !p.Player.IsRemoved).ToArray();
+                var nonRemovedPlayers = game.Players.Where(p => !p.IsRemoved).ToArray();
                 if (nonRemovedPlayers.All(p => p.Player.IsReady)
                     && (game.PhaseDetails.CurrentPhase != RoundPhase.Lobby || nonRemovedPlayers.Length >= 3))
                 {
                     if (game.PhaseDetails.CurrentPhase == RoundPhase.Lobby)
                     {
-                        var toRemove = game.Players.Where(p => p.Player.IsRemoved).ToArray();
+                        var toRemove = game.Players.Where(p => p.IsRemoved).ToArray();
                         foreach (var pr in toRemove)
                         {
                             pr.Player.lastAttachedGameId = null;
-                            _players.Remove(pr.Player.UserToken);
-                            game.Players.Remove(pr);
+                            if (!pr.Player.IsConnected)
+                            {
+                                _players.Remove(pr.Player.UserToken);
+                                _log.LogInformation("Player {UserId} removed from player store because they were not connected on getting back to game lobby", pr.Player.UserId);
+                            }
                         }
+                        _orchestrator.ClearRemovedUsers(game);
                     }
 
                     _log.LogInformation("All players in Game {GameId} are ready. Advancing phase.", game.GameId);
@@ -251,17 +261,24 @@ namespace Masquerade_GGJ_2026.Hubs
 
         private async Task DetachPlayerFromGame(Player player, Game game)
         {
-            player.IsRemoved = true;
-            if (game.Players.All(p => p.Player.IsRemoved))
+            var playerState = game.Players.FirstOrDefault(p => p.Player == player);
+            if(playerState != null)
+            {
+                playerState.IsRemoved = true;
+            }
+            if (game.Players.All(p => p.IsRemoved))
             {
                 foreach (var newPlayer in game.Players)
                 {
-                    _players.Remove(newPlayer.Player.UserToken);
+                    if(!newPlayer.Player.IsConnected)
+                    {
+                        _players.Remove(newPlayer.Player.UserToken);
+                        _log.LogInformation("Player {UserId} removed from player store because the game they were in was closed", newPlayer.Player.UserId);
+                    }
                 }
                 game.Players.Clear();
                 _gameStore.Remove(game.GameId);
                 _log.LogInformation("Game {GameId} removed from store because all players left", game.GameId);
-                Context.Items.Remove("player"); //TODO: Think of a way where we don't remove players from the system if they went back to rooms list
                 return;
             }
 
@@ -275,7 +292,7 @@ namespace Masquerade_GGJ_2026.Hubs
             if (game != null)
             {
                 var player = (Player)Context.Items["player"]!;
-                if (game.Players.First(x => !x.Player.IsRemoved).Player != player)
+                if (game.Players.First(x => !x.IsRemoved).Player != player)
                 {
                     _log.LogWarning("Player {UserId} attempted to update settings for Game {GameId} but is not the host", player.UserId, gameId);
                     return;
@@ -285,6 +302,27 @@ namespace Masquerade_GGJ_2026.Hubs
                 game.Settings.Rounds = settings.Rounds;
                 _log.LogInformation("Player {UserId} updated settings for Game {GameId}", player.UserId, gameId);
                 await game.NotifyGameSettingsUpdated();
+            }
+        }
+
+        public async Task KickPlayer(string playerToKickId)
+        {
+            var gameId = Context.Items.ContainsKey("gameId") ? Context.Items["gameId"]?.ToString() : null;
+            var game = _gameStore.Get(gameId);
+            if (game != null)
+            {
+                var player = (Player)Context.Items["player"]!;
+                if (game.Players.First(x => !x.IsRemoved).Player != player)
+                {
+                    _log.LogWarning("Player {UserId} attempted to kick another player {KickedUserId} from Game {GameId} but is not the host", player.UserId, playerToKickId, gameId);
+                    return;
+                }
+                var kickedPlayer = game.Players.First(x=>x.Player.UserId == playerToKickId).Player;
+                await DetachPlayerFromGame(kickedPlayer, game);
+                kickedPlayer.lastAttachedGameId = null;
+                await kickedPlayer.NotifyGetBackToUserSelect(game, "Kicked by admin");
+                _orchestrator.ClearRemovedUsers(game);
+                _log.LogInformation("Player {UserId} was kicked from the Game {GameId}", kickedPlayer.UserId, gameId);
             }
         }
     }

@@ -10,7 +10,7 @@ namespace Masquerade_GGJ_2026.Models
         public string ConnectionId { get; set; }
         public string? Username { get; set; }
         public bool IsReady { get; set; }
-        public bool IsRemoved { get; set; } = false;
+        public bool IsConnected { get; set; }
         public string? lastAttachedGameId { get; set; } = null;
         public PlayerNotifier Notifier { get; set; }
 
@@ -20,6 +20,7 @@ namespace Masquerade_GGJ_2026.Models
             ConnectionId = connectionId;
             Username = userName;
             Notifier = notifier;
+            IsConnected = true;
         }
 
         #region Notifications
@@ -37,6 +38,11 @@ namespace Masquerade_GGJ_2026.Models
         public Task NotifyAllGameRooms(GameRoomMessage[] gameRooms)
         {
             return Notifier.AllGameRooms(this, gameRooms);
+        }
+
+        public Task NotifyGetBackToUserSelect(Game game, string reason)
+        {
+            return Notifier.GetBackToUserSelect(this, game, reason);
         }
 
         #endregion

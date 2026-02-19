@@ -160,5 +160,15 @@ namespace Masquerade_GGJ_2026.Orchestrators
             await game.NotifyEndPhase(reason);
             await NextPhase(game);
         }
+
+        public void ClearRemovedUsers(Game game)
+        {
+            var removedPlayers = game.Players.Where(p => p.IsRemoved).ToList();
+            foreach (var removedPlayer in removedPlayers)
+            {
+                game.Players.Remove(removedPlayer);
+                _log.LogInformation($"Removed player {removedPlayer.Player.UserId} from game {game.GameId}");
+            }
+        }
     }
 }

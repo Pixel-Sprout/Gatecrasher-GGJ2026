@@ -68,7 +68,7 @@ namespace Masquerade_GGJ_2026.Notifiers
         {
             return new LobbyMessage
             {
-                Players = game.Players.Where(p => !p.Player.IsRemoved).Select(p => p.Player).ToList(),
+                Players = game.Players.Where(p => !p.IsRemoved).Select(p => p.Player).ToList(),
                 Settings = game.Settings
             };
         }
