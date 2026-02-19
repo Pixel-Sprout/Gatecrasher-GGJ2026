@@ -66,18 +66,20 @@
 }
 
 
-@keyframes slideInStay{
-  0% {
-    opacity: 0;
-    transform: translateX(-12vw) translateZ(0);
-  }
-  40% {
-    opacity: 1;
-    transform: translateX(0) translateZ(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) translateZ(0);
+@media screen and (min-width:1024px) {
+  @keyframes slideInStay{
+    0% {
+      opacity: 0;
+      transform: translateX(-12vw) translateZ(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateX(0) translateZ(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) translateZ(0);
+    }
   }
 }
 
