@@ -300,6 +300,10 @@ namespace Masquerade_GGJ_2026.Hubs
                 game.Settings.DrawingTimeSeconds = settings.DrawingTimeSeconds;
                 game.Settings.VotingTimeSeconds = settings.VotingTimeSeconds;
                 game.Settings.Rounds = settings.Rounds;
+                game.Settings.TotalNumberOfRequirements = settings.TotalNumberOfRequirements;
+                game.Settings.GoodPlayerNumberOfRequirements = settings.GoodPlayerNumberOfRequirements;
+                game.Settings.BadPlayerNumberOfRequirements = settings.BadPlayerNumberOfRequirements;
+                game.Settings.UseLongMaskDescriptions = settings.UseLongMaskDescriptions;
                 _log.LogInformation("Player {UserId} updated settings for Game {GameId}", player.UserId, gameId);
                 await game.NotifyGameSettingsUpdated();
             }

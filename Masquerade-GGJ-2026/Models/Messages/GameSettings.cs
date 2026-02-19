@@ -9,5 +9,6 @@
         public int TotalNumberOfRequirements { get; set; } = 6;
         public int GoodPlayerNumberOfRequirements { get; set; } = 4;
         public int BadPlayerNumberOfRequirements { get; set; } = 2;
+        public bool UseLongMaskDescriptions { get; set; } = false;
     }
 }

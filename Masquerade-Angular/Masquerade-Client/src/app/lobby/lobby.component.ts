@@ -19,6 +19,10 @@ interface LobbySettings {
   drawingTimeSeconds: number;
   votingTimeSeconds: number;
   rounds: number;
+  totalNumberOfRequirements: number;
+  goodPlayerNumberOfRequirements: number;
+  badPlayerNumberOfRequirements: number;
+  useLongMaskDescriptions: boolean;
 }
 
 @Component({
@@ -100,6 +104,10 @@ export class LobbyComponent implements OnInit {
     this.timeToDraw.set(settings.drawingTimeSeconds ?? this.timeToDraw());
     this.timeToVote.set(settings.votingTimeSeconds ?? this.timeToVote());
     this.rounds.set(settings.rounds ?? this.rounds());
+    this.totalNumberOfRequirements.set(settings.totalNumberOfRequirements ?? this.totalNumberOfRequirements());
+    this.goodPlayerNumberOfRequirements.set(settings.goodPlayerNumberOfRequirements ?? this.goodPlayerNumberOfRequirements());
+    this.badPlayerNumberOfRequirements.set(settings.badPlayerNumberOfRequirements ?? this.badPlayerNumberOfRequirements());
+    this.useLongMaskDescriptions.set(settings.useLongMaskDescriptions ?? this.useLongMaskDescriptions());
   }
 
   // Send current settings to backend (implement server handler)
@@ -108,6 +116,10 @@ export class LobbyComponent implements OnInit {
       drawingTimeSeconds: this.timeToDraw(),
       votingTimeSeconds: this.timeToVote(),
       rounds: this.rounds(),
+      totalNumberOfRequirements: this.totalNumberOfRequirements(),
+      goodPlayerNumberOfRequirements: this.goodPlayerNumberOfRequirements(),
+      badPlayerNumberOfRequirements: this.badPlayerNumberOfRequirements(),
+      useLongMaskDescriptions: this.useLongMaskDescriptions()
     };
     this.svc.updateGameSettings(payload);
     console.log('Lobby settings saved:', payload);
@@ -117,4 +129,8 @@ export class LobbyComponent implements OnInit {
   public timeToDraw = signal<number>(60);
   public timeToVote = signal<number>(30);
   public rounds = signal<number>(3);
+  public totalNumberOfRequirements = signal<number>(6);
+  public goodPlayerNumberOfRequirements = signal<number>(4);
+  public badPlayerNumberOfRequirements = signal<number>(2);
+  public useLongMaskDescriptions = signal<boolean>(false);
 }

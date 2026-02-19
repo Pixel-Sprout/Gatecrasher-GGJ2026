@@ -44,7 +44,22 @@
           Number of rounds:
           <input type="number" min="1" [value]="rounds()" #roundsInput (input)="rounds.set(roundsInput.valueAsNumber)" />
         </label> -->
-
+        <label>
+          Total Number of Requirements:
+          <input type="number" min="1" [value]="totalNumberOfRequirements()" #totalReqInput (input)="totalNumberOfRequirements.set(totalReqInput.valueAsNumber)" />
+        </label>
+        <label>
+          Good Player Number of Requirements:
+          <input type="number" min="1" [value]="goodPlayerNumberOfRequirements()" #goodReqInput (input)="goodPlayerNumberOfRequirements.set(goodReqInput.valueAsNumber)" />
+        </label>
+        <label>
+          Bad Player Number of Requirements:
+          <input type="number" min="1" [value]="badPlayerNumberOfRequirements()" #badReqInput (input)="badPlayerNumberOfRequirements.set(badReqInput.valueAsNumber)" />
+        </label>
+        <label>
+          Use Long Mask Descriptions:
+          <input type="checkbox" [checked]="useLongMaskDescriptions()" (change)="useLongMaskDescriptions.set($event.target.checked)" />
+        </label>
         <div class="settings-actions">
           <button (click)="saveSettings()">Save Settings</button>
         </div>
