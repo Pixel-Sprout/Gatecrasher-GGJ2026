@@ -81,7 +81,6 @@ namespace Masquerade_GGJ_2026.Models
 
         public Task NotifyUserJoined(Player player)
         {
-            Players.Add(new PlayerGameState { Player = player });
             return Notifier.UserJoined(this.GameId, player);
         }
 

@@ -148,7 +148,7 @@ namespace Masquerade_GGJ_2026.Hubs
             var username = Context.Items.ContainsKey("username") ? Context.Items["username"]?.ToString() : null;
             Context.Items["gameId"] = gameId;
 
-
+            game.Players.Add(new PlayerGameState { Player = player });
             await game.NotifyUserJoined(player);
             await player.NotifyPhaseChanged(game);
             await game.NotifySendPlayersInRoom();
