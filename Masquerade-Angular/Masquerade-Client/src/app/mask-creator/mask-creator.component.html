@@ -94,9 +94,9 @@
             <div class="toggle-buttons">
               <button
                 class="btn tool-btn"
-                [class.active]="!isEraser"
-                (click)="setEraser(false)"
-                aria-pressed="{{ !isEraser }}">
+                [class.active]="currentTool === DrawingTools.Brush"
+                (click)="setTool(DrawingTools.Brush)"
+                aria-pressed="{{ currentTool === DrawingTools.Brush }}">
                 <span class="icon" aria-hidden="true">
                   🖌️
                 </span>
@@ -105,13 +105,21 @@
 
               <button
                 class="btn tool-btn"
-                [class.active]="isEraser"
-                (click)="setEraser(true)"
-                aria-pressed="{{ isEraser }}">
+                [class.active]="currentTool === DrawingTools.Eraser"
+                (click)="setTool(DrawingTools.Eraser)"
+                aria-pressed="{{ currentTool === DrawingTools.Eraser }}">
                 <span class="icon" aria-hidden="true">
                   🧼
                 </span>
                 Eraser
+              </button>
+              <button
+                class="btn tool-btn"
+                [class.active]="currentTool === DrawingTools.Fill"
+                (click)="setTool(DrawingTools.Fill)"
+                aria-pressed="{{ currentTool === DrawingTools.Fill }}">
+                <span class="icon" aria-hidden="true">🎨</span>
+                Fill
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { GameHubService } from '../services/gamehub.service';
 import { HttpApiService } from '../services/httpApi.service';
 import { AppStateService } from '../services/app-state.service';
 import { GameState } from '../types/game-state.enum';
+import { DrawingTools } from '../types/drawing-tools.enum';
 
 interface FeatureSection {
   name: string;
@@ -22,7 +23,8 @@ interface FeatureSection {
 export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
   @ViewChild('maskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('brushPreviewCanvas') brushPreviewCanvasRef!: ElementRef<HTMLCanvasElement>;
-
+  
+  public DrawingTools = DrawingTools; // expose enum to template
   // Drawing properties
   brushColor: string = '#000000';
   brushSize: number = 5;
@@ -43,7 +45,7 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
   private context!: CanvasRenderingContext2D;
   private cssWidth: number = 0;
   private cssHeight: number = 0;
-  isEraser: boolean = false;
+  public currentTool: DrawingTools = DrawingTools.Brush;
   private isDrawing: boolean = false;
   private lastX: number = 0;
   private lastY: number = 0;
@@ -192,7 +194,12 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
   }
 
   touchStart(event: TouchEvent): void {
-    this._startDrawing(event.touches[0].clientX, event.touches[0].clientY);
+    if (this.currentTool === DrawingTools.Fill) {
+      event.preventDefault();
+      this.performFillAt(event.touches[0].clientX, event.touches[0].clientY);
+    } else {
+      this._startDrawing(event.touches[0].clientX, event.touches[0].clientY);
+    }
   }
 
   touchEnd(event: TouchEvent): void {
@@ -207,6 +214,10 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
   }
 
   startDrawing(event: MouseEvent): void {
+    if (this.currentTool === DrawingTools.Fill) {
+      this.performFillAt(event.clientX, event.clientY);
+      return;
+    }
     this._startDrawing(event.clientX, event.clientY);
     /*if (!this.canvas) return;
 
@@ -247,7 +258,7 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
 
     // Draw line from last position to current position
     // Use eraser by switching composite operation; destination-out erases pixels
-    if (this.isEraser) {
+    if (this.currentTool === DrawingTools.Eraser) {
       this.context.globalCompositeOperation = 'destination-out';
       this.context.strokeStyle = 'rgba(0,0,0,1)';
     } else {
@@ -265,6 +276,119 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
 
     this.lastX = currentX;
     this.lastY = currentY;
+  }
+
+  private performFillAt(clientX:number, clientY:number): void {
+    if (!this.canvas || !this.context) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const cssX = Math.floor(clientX - rect.left);
+    const cssY = Math.floor(clientY - rect.top);
+    const dpr = window.devicePixelRatio || 1;
+    const px = Math.floor(cssX * dpr);
+    const py = Math.floor(cssY * dpr);
+
+    // Convert brushColor to RGBA bytes for fill
+    const rgba = this.hexToRgba(this.brushColor);
+    if (!rgba) return;
+
+    this.floodFill(px, py, rgba.r, rgba.g, rgba.b, rgba.a);
+    this.canvasHasDrawing = true;
+    this.showInstructions = false;
+    this.updateBrushPreview();
+  }
+
+  private hexToRgba(hex: string): {r:number,g:number,b:number,a:number} | null {
+    if (!hex) return null;
+    let h = hex.replace('#','');
+    if (h.length === 3) {
+      h = h.split('').map(c => c + c).join('');
+    }
+    if (h.length !== 6) return null;
+    const r = parseInt(h.substring(0,2),16);
+    const g = parseInt(h.substring(2,4),16);
+    const b = parseInt(h.substring(4,6),16);
+    return {r,g,b,a:255};
+  }
+
+  // Simple flood-fill using scanline algorithm on the canvas pixel buffer
+  private floodFill(startX:number, startY:number, r:number, g:number, b:number, a:number): void {
+    if (!this.context || !this.canvas) return;
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+    if (startX < 0 || startY < 0 || startX >= width || startY >= height) return;
+
+    const imageData = this.context.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    const targetIndex = (startY * width + startX) * 4;
+    const tr = data[targetIndex];
+    const tg = data[targetIndex+1];
+    const tb = data[targetIndex+2];
+    const ta = data[targetIndex+3];
+
+    // If target color equals fill color, nothing to do
+    if (tr === r && tg === g && tb === b && ta === a) return;
+
+    const stack: Array<number> = [];
+    stack.push(startX, startY);
+
+    while (stack.length) {
+      const y = stack.pop()!;
+      const x = stack.pop()!;
+
+      let currentY = y;
+      // move up to find top boundary
+      while (currentY >= 0) {
+        const idx = (currentY * width + x) * 4;
+        if (data[idx] === tr && data[idx+1] === tg && data[idx+2] === tb && data[idx+3] === ta) {
+          currentY--;
+        } else {
+          break;
+        }
+      }
+      currentY++;
+
+      let reachLeft = false;
+      let reachRight = false;
+
+      for (let ny = currentY; ny < height; ny++) {
+        const idx = (ny * width + x) * 4;
+        if (!(data[idx] === tr && data[idx+1] === tg && data[idx+2] === tb && data[idx+3] === ta)) break;
+
+        // set pixel to new color
+        data[idx] = r;
+        data[idx+1] = g;
+        data[idx+2] = b;
+        data[idx+3] = a;
+
+        // check left
+        if (x > 0) {
+          const li = (ny * width + (x-1)) * 4;
+          if (data[li] === tr && data[li+1] === tg && data[li+2] === tb && data[li+3] === ta) {
+            if (!reachLeft) {
+              stack.push(x-1, ny);
+              reachLeft = true;
+            }
+          } else if (reachLeft) {
+            reachLeft = false;
+          }
+        }
+
+        // check right
+        if (x < width-1) {
+          const ri = (ny * width + (x+1)) * 4;
+          if (data[ri] === tr && data[ri+1] === tg && data[ri+2] === tb && data[ri+3] === ta) {
+            if (!reachRight) {
+              stack.push(x+1, ny);
+              reachRight = true;
+            }
+          } else if (reachRight) {
+            reachRight = false;
+          }
+        }
+      }
+    }
+
+    this.context.putImageData(imageData, 0, 0);
   }
 
   stopDrawing(): void {
@@ -336,14 +460,8 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
     this.svc.ready();
   }
 
-  toggleEraser(): void {
-    this.isEraser = !this.isEraser;
-    this.updateBrushPreview();
-  }
-
-  setEraser(value: boolean): void {
-    if (this.isEraser === value) return;
-    this.isEraser = value;
+  setTool(tool: DrawingTools): void {
+    this.currentTool = tool;
     this.updateBrushPreview();
   }
 
@@ -372,7 +490,7 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
     const cx = cw / 2;
     const cy = ch / 2;
     const radius = Math.max(1, this.brushSize / 2);
-    if (this.isEraser) {
+    if (this.currentTool === DrawingTools.Eraser) {
       previewContext.strokeStyle = '#7f8c8d';
       previewContext.lineWidth = Math.max(2, Math.min(6, Math.round(this.brushSize / 3)));
       previewContext.beginPath();
