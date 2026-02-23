@@ -8,12 +8,6 @@ namespace Masquerade.Repositories
     public class MemoryGameStore : IGameStore
     {
         private readonly ConcurrentDictionary<string, Game> _games = new();
-        private readonly GameFactory _gameFactory;
-
-        public MemoryGameStore(GameFactory gameFactory) 
-        {
-            _gameFactory = gameFactory;
-        }
 
         public Game? Get(string? gameId)
         {
@@ -29,9 +23,8 @@ namespace Masquerade.Repositories
             return _games.Values;
         }
 
-        public Game Create(string? gameName)
+        public Game Create(Game newGame)
         {
-            Game newGame = _gameFactory.Create(gameName);
             return _games.GetOrAdd(newGame.GameId, _ => newGame);
         }
 

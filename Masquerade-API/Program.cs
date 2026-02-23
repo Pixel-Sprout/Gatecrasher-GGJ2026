@@ -2,6 +2,7 @@ using Masquerade.Factories;
 using Masquerade.Notifiers;
 using Masquerade.Orchestrators;
 using Masquerade.Repositories;
+using Masquerade.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the cont
@@ -28,6 +29,7 @@ builder.Services.AddScoped<GameOrchestrator>();
 builder.Services.AddSingleton<GameFactory>();
 builder.Services.AddSingleton<GameNotifier>();
 builder.Services.AddSingleton<IGameStore, MemoryGameStore>();
+builder.Services.AddSingleton<IPlayersStore, PlayersStore>();
 
 var app = builder.Build();
 
@@ -42,6 +44,7 @@ app.UseCors("CorsPolicy");
 app.MapControllers();
 
 // Mapuj hub Game
-app.MapHub<Masquerade.Hubs.GameHub>("/hubs/game");
+app.MapHub<GameHub>("/hubs/game");
+app.MapHub<MainHub>("/hubs/main");
 
 app.Run();

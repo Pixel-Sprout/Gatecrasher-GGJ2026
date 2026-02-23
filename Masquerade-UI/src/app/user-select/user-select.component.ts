@@ -6,6 +6,8 @@ import {GameHubService, GameRoom} from '../services/gamehub.service';
 import {AppStateService} from '../services/app-state.service';
 import {GameState} from '../types/game-state.enum';
 import { WINDOW } from '../window.provider';
+import {MainHubService} from '../services/mainhub.service';
+import {LocalStorageService} from '../services/local-storage.service';
 
 @Component({
   selector: 'app-user-select',
@@ -14,87 +16,67 @@ import { WINDOW } from '../window.provider';
   templateUrl: './user-select.component.html',
   styleUrls: ['./user-select.component.scss']
 })
-export class UserSelectComponent implements OnInit, OnDestroy {
-  private svc = inject(GameHubService);
+export class UserSelectComponent implements OnDestroy {
+ // private svc = inject(GameHubService);
+  private mainHub = inject(MainHubService);
+  private storage = inject(LocalStorageService);
   protected readonly appState = inject(AppStateService);
+
+  protected connected = signal<boolean>(false);
+  protected nameSelected = signal<boolean>(false);
+  protected playerName = signal<string>("");
+  protected roomName = signal<string>("");
+  protected errorMessage = signal<string | null>(null);
+
+
 
   roomsSource = new BehaviorSubject<GameRoom[]>([]);
   rooms = this.roomsSource.asObservable();
-  userName = '';
-  connected = signal<boolean>(false);
-  newRoomName = '';
-  errorMessage = signal<string | null>(null);
-  requestedRoomId: string = "";
 
   private subs = new Subscription();
 
   constructor(@Inject(WINDOW) private window: Window) {
-    this.requestedRoomId = window.location.search.substring(1).trim();
-    console.log(this.requestedRoomId);
-  }
-  ngOnInit(): void {
-    const s = this.svc.receiveGameRooms$.subscribe(rooms => {
-      var reqestedRoom = rooms.find(r => r.gameId == this.requestedRoomId);
-      if(reqestedRoom){
-        this.joinRoom(reqestedRoom);
-      }
+    this.registerMainHubHandlers();
 
-      this.roomsSource.next(rooms);
+    let requestedRoomId = window.location.search.substring(1).trim();
+    this.storage.UserToken$.subscribe(token => {
+      this.mainHub.connect(token, requestedRoomId).then((success) => {
+        this.connected.set(success)
+        if(!success){
+          this.errorMessage.set('Error connecting to server.');
+        }
+      })
     });
-    this.subs.add(s);
+  }
 
-    this.svc.onReceivePhaseChanged().subscribe(([phase, message]) =>
-      setTimeout(() => {
-        this.appState.setState(phase as GameState, message);
-      }, 800)
-    );
+  private registerMainHubHandlers() {
+    this.subs.add(this.mainHub.playerDataReceived$.subscribe(([playerName, roomId]) =>
+      this.onPlayerDataReceived(playerName, roomId)));
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
 
-  connect() {
-    if (!this.userName.trim()) {
+  setName() {
+    if(!this.connected()){
+      this.errorMessage.set('Not connected.');
       return;
     }
 
-    this.svc.connect(this.userName).then((success) => {
-      if(success) {
-        this.errorMessage.set(null);
-        // Wywołanie na serwerze powinno spowodować, że receiveGameRooms$ wyemituje listę
-        this.svc.getAvailableGameRooms().catch(() => {});
-        this.connected.set(true);
-      }else{
-        this.errorMessage.set('Error connecting to server.');
-      }
-    });
+    this.mainHub.SetPlayerName(this.playerName().trim());
   }
 
-  disconnect() {
-    this.connected.set(false);
-
-    this.errorMessage.set(null);
-
-    this.svc.disconnect().then(() => {
-      console.log(this.userName + ' disconnected from the game hub.');
-    });
+  setRoomName() {
+    this.mainHub.CreateRoom(this.roomName().trim());
   }
 
-  joinRoom(room: GameRoom) {
-    if (!this.connected) return;
-
-    this.svc.joinGame(room.gameId)
-  }
-
-  createRoom() {
-    if (!this.connected) return;
-    const name = (this.newRoomName || '').trim();
-    if (!name) return;
-    this.svc.CreateAndJoinGame(name);
-  }
-
-  trackByGameId(index: number, room: GameRoom) {
-    return room?.gameId ?? index;
+  private onPlayerDataReceived(playerName: string, roomId: string | null) {
+    console.log('Received player data:', playerName, roomId);
+    if(playerName.trim()){
+      this.playerName.set(playerName.trim());
+      this.nameSelected.set(true);
+      this.errorMessage.set(null);
+    }
   }
 }

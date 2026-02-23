@@ -12,6 +12,7 @@ namespace Masquerade.Hubs
     {
         private readonly ILogger<GameHub> _log;
         private readonly PlayerFactory _playerFactory;
+        private readonly GameFactory _gameFactory;
         private readonly GameOrchestrator _orchestrator;
         private readonly IGameStore _gameStore;
         private static IDictionary<string, Player> _players = new Dictionary<string, Player>();
@@ -19,11 +20,13 @@ namespace Masquerade.Hubs
         public GameHub(ILogger<GameHub> log,
             IGameStore gameStore,
             PlayerFactory playerFactory,
+            GameFactory gameFactory,
             GameOrchestrator orchestrator)
         {
             _log = log;
             _gameStore = gameStore;
             _playerFactory = playerFactory;
+            _gameFactory = gameFactory;
             _orchestrator = orchestrator;
         }
 
@@ -72,7 +75,7 @@ namespace Masquerade.Hubs
                 }
                 else
                 {
-                    player = _playerFactory.Create(userToken, Context.ConnectionId, username);
+                    player = _playerFactory.GetOrCreate(userToken, Context.ConnectionId, username);
                     _players.Add(userToken, player);
                 }
                 Context.Items["username"] = username;
@@ -108,7 +111,7 @@ namespace Masquerade.Hubs
         }
 
         // Broadcast all game ids to the connected clients
-        public async Task GetAllGameIds()
+        /*public async Task GetAllGameIds()
         {
             var player = (Player)Context.Items["player"]!;
             GameRoomMessage[] gameRooms = _gameStore.GetAllGames()
@@ -120,7 +123,7 @@ namespace Masquerade.Hubs
                     }).ToArray();
             _log.LogInformation("User {UserId} requested game list. Returning {GameCount} games.", player.UserId, gameRooms.Length);
             await player.NotifyAllGameRooms(gameRooms);
-        }
+        }*/
 
         /// <summary>
         /// Allows a connected client to join a specific game by id.
@@ -156,10 +159,10 @@ namespace Masquerade.Hubs
             _log.LogInformation("Player {UserId} joined Game {GameId}", player.UserId, gameId);
         }
 
-        public async Task<string> CreateAndJoinGame(string gameName)
+        /*public async Task<string> CreateAndJoinGame(string gameName)
         {
             //Create new game via factory (it assigns per-game notifier)
-            var newGame = _gameStore.Create(string.IsNullOrWhiteSpace(gameName) ? null : gameName);
+            var newGame = _gameFactory.Create(string.IsNullOrWhiteSpace(gameName) ? Guid.NewGuid().ToString() : gameName);
 
             await _orchestrator.EndPhase(newGame, "New Game");
             //Join the newly created game
@@ -168,7 +171,7 @@ namespace Masquerade.Hubs
             await newGame.NotifyPhaseChanged();
 
             return newGame.GameId;
-        }
+        }*/
 
         /// <summary>
         /// Allows a connected client to leave a specific game group.

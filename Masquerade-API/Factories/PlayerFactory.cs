@@ -1,24 +1,27 @@
 using Masquerade.Models;
 using Masquerade.Notifiers;
+using Masquerade.Repositories;
 
 namespace Masquerade.Factories
 {
-    public class PlayerFactory
+    public class PlayerFactory(ILogger<PlayerFactory> log, 
+        PlayerNotifier notifier,
+        IPlayersStore playersStore)
     {
-        private readonly ILogger<PlayerFactory> _log;
-        private readonly PlayerNotifier _notifier;
-
-        public PlayerFactory(ILogger<PlayerFactory> log, PlayerNotifier notifier)
+        public Player GetOrCreate(string userToken, string connectionId, string? userName = null)
         {
-            _log = log;
-            _notifier = notifier;
-        }
+            var player = playersStore.GetPlayerByToken(userToken);
+            if (player == null)
+            {
+                player = new Player(userToken, connectionId, userName ?? String.Empty, notifier);
+                playersStore.NewPlayer(player);
+                log.LogInformation("Created new player with ID: {PlayerId}", player.UserId);
+            }
+            else
+            {
+                player.ConnectionId = connectionId;
+            }
 
-        // Create a new Game and attach a per-game notifier instance
-        public Player Create(string userToken, string connectionId, string? userName = null)
-        {
-            var player = new Player(userToken, connectionId, userName, _notifier);
-            _log.LogInformation("Created new player with ID: {PlayerId}", player.UserId);
             return player;
         }
     }

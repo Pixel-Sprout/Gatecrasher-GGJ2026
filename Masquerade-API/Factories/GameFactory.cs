@@ -1,24 +1,23 @@
 using Masquerade.Models;
 using Masquerade.Notifiers;
+using Masquerade.Repositories;
 
 namespace Masquerade.Factories
 {
-    public class GameFactory
+    public class GameFactory(ILogger<GameFactory> log, 
+        GameNotifier notifier,
+        IGameStore gameStore)
     {
-        private readonly ILogger<GameFactory> _log;
-        private readonly GameNotifier _notifier;
 
-        public GameFactory(ILogger<GameFactory> log, GameNotifier notifier)
-        {
-            _log = log;
-            _notifier = notifier;
-        }
-
-        // Create a new Game and attach a per-game notifier instance
+        public IEnumerable<IUiGame> GetAllGames()
+            => gameStore.GetAllGames().ToArray();
+        public bool DoGameExist(string gameId)
+            => gameStore.Get(gameId) != null;
+        
         public Game Create(string? gameName = null)
         {
-            var game = new Game(gameName, _notifier);
-            _log.LogInformation("Created new game with ID: {GameId}", game.GameId);
+            var game = gameStore.Create(new Game(gameName, notifier));
+            log.LogInformation("Created new game with ID: {GameId}", game.GameId);
             return game;
         }
     }

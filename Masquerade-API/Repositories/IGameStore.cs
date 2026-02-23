@@ -6,7 +6,7 @@ namespace Masquerade.Repositories
     {
         Game? Get(string? gameId);
         IEnumerable<Game> GetAllGames();
-        Game Create(string? gameName);
+        Game Create(Game newGame);
         bool Remove(string gameId);
     }
 }

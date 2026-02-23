@@ -46,5 +46,8 @@ namespace Masquerade.Models
         }
 
         #endregion
+
+        public override string ToString()
+            => $"Player({Username}, {UserToken})";
     }
 }

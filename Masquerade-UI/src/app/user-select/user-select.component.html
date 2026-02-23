@@ -11,15 +11,14 @@
     </div>
 
     <div class="connect-row">
-      <input type="text" placeholder="Enter your name" [(ngModel)]="userName" [disabled]="connected()" />
-      <button (click)="connect()" [disabled]="connected() || !userName.trim()">{{ connected() ? 'Connected' : 'Connect' }}</button>
-      <button (click)="disconnect()" [disabled]="!connected() || !userName.trim()">Disconnect</button>
+      <input type="text" [(ngModel)]="playerName" placeholder="Enter your name" [disabled]="!connected()"/>
+      <button (click)="setName()" [disabled]="!connected()">{{ nameSelected()? "Change Name" : "Set Name" }}</button>
     </div>
-
-    <div class="rooms-list" *ngIf="connected()">
+    @if(connected() && nameSelected()){
+    <div class="rooms-list">
       <div class="create-room">
-        <input type="text" placeholder="Enter room name" [(ngModel)]="newRoomName" />
-        <button (click)="createRoom()" [disabled]="!connected() || !newRoomName.trim()">Create</button>
+        <input type="text" [(ngModel)]="roomName" placeholder="Enter room name" />
+        <button (click)="setRoomName()" [disabled]="!roomName().trim()">Create</button>
       </div>
       <h3>Available Rooms</h3>
       <div class="room-item">
@@ -29,10 +28,11 @@
           <span class="room-status">{{ room.currentPhase }}</span>
         </div>
         <div class="room-actions">
-          <button (click)="joinRoom(room)" [disabled]="room.currentPhase !== 'Lobby'">Join</button>
+          <button [disabled]="room.currentPhase !== 'Lobby'">Join</button>
         </div>
         }
       </div>
     </div>
+    }
   </div>
 </div>
