@@ -1,0 +1,54 @@
+﻿using Masquerade.Hubs;
+using Masquerade.Models;
+using Masquerade.Models.Enums;
+using Masquerade.Models.Messages;
+using Microsoft.AspNetCore.SignalR;
+
+namespace Masquerade.Notifiers
+{
+    public class PlayerNotifier : BaseNotifier
+    {
+        private readonly IHubContext<GameHub> _hub;
+        private readonly ILogger<PlayerNotifier> _log;
+
+        public PlayerNotifier(ILogger<PlayerNotifier> log, IHubContext<GameHub> hub)
+        {
+            _log = log;
+            _hub = hub;
+        }
+
+        public async Task PhaseChanged(Player player, Game game)
+        {
+            _log.LogInformation("Sending PhaseChanged to Player {UserId}", player.UserId);
+            bool isEvil = game.GetPlayerState(player).IsEvil;
+
+            object? message = game.PhaseDetails.CurrentPhase switch
+            {
+                RoundPhase.Lobby => CreateLobbyMessage(game),
+                RoundPhase.Drawing => CreateDrawingMessage(game, isEvil),
+                RoundPhase.Voting => CreateVotingMessage(game),
+                RoundPhase.Scoreboard => CreateScoreboardMessage(game),
+                RoundPhase.CutsceneTheChoice => CreateCutsceneMessage(game),
+                _ => null,
+            };
+
+            await _hub.Clients.Client(player.ConnectionId).SendAsync("PhaseChanged", game.PhaseDetails.CurrentPhase, message);
+        }
+
+        public async Task GetBackToUserSelect(Player player, Game game, string reason)
+        {
+            _log.LogInformation("Player {UserId} left a game {GameId} due to {Reason} reason", player.UserId, game.GameId, reason);
+            await _hub.Clients.Client(player.ConnectionId).SendAsync("PhaseChanged", RoundPhase.UserSelect, reason);
+        }
+
+        public async Task PlayerState(Player player)
+        {
+            await _hub.Clients.Client(player.ConnectionId).SendAsync("PlayerState", player.Username, player.UserId);
+        }
+
+        public async Task AllGameRooms(Player player, GameRoomMessage[] gameRooms)
+        {
+            await _hub.Clients.Client(player.ConnectionId).SendAsync("ReceiveAllGameIds", gameRooms);
+        }
+    }
+}
