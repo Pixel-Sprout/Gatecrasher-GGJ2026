@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Masquerade_GGJ_2026</RootNamespace>
+    <RootNamespace>Masquerade</RootNamespace>
     <UserSecretsId>e0bf6c68-8a51-48c8-87f4-4006dc6e3dfb</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
@@ -16,14 +16,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="WeatherForecast.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Masquerade-GGJ-2026.http" />
   </ItemGroup>
 
 </Project>

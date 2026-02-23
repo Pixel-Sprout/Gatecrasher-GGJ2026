@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36915.13 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masquerade", "Masquerade\Masquerade.csproj", "{71B32096-7561-4CAF-9C6C-12ADFB93B0E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masquerade", "Masquerade-API\Masquerade.csproj", "{71B32096-7561-4CAF-9C6C-12ADFB93B0E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
