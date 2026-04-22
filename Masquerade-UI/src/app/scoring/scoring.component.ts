@@ -12,7 +12,8 @@ interface ScoringPlayer {
   selectedDifferentMaskId?: string | null;
   isReady: boolean;
   guessedRight: boolean;
-  isEvil: boolean
+  isEvil: boolean;
+  imageData: string;
 }
 
 @Component({
@@ -26,6 +27,11 @@ export class ScoringComponent implements OnInit {
   private appState = inject(AppStateService);
   private svc = inject(GameHubService);
   public players = signal<ScoringPlayer[]>([]);
+  // cursor-bound preview state
+  public previewVisible = false;
+  public previewSrc: string | null = null;
+  public previewX = 0;
+  public previewY = 0;
  
   ngOnInit(): void {
     this.svc.onReceivePhaseChanged().subscribe(([phase, message]) => 
@@ -54,7 +60,8 @@ export class ScoringComponent implements OnInit {
       selectedDifferentMaskId: p.votedPlayerId,
       isReady: !!p.player.isReady,
       guessedRight: p.votedPlayerId === evilPlayerId,
-      isEvil: !!p.isEvil
+      isEvil: !!p.isEvil,
+      imageData: p.encodedMask
     }));
     this.players.set(initialPlayers);
   }
@@ -67,5 +74,38 @@ export class ScoringComponent implements OnInit {
   // mark current player as not ready and go to lobby immediately (Cancel)
   toggleReady(): void {
     this.svc.ready();
+  }
+
+  showPreview(evt: MouseEvent, src: string): void {
+    this.previewSrc = src;
+    this.previewVisible = true;
+    this.movePreview(evt);
+  }
+
+  movePreview(evt: MouseEvent): void {
+    const padding = 12;
+    const previewWidth = Math.min(window.innerWidth * 0.6, 320);
+    const previewHeight = Math.min(window.innerHeight * 0.6, 320);
+
+    // Prefer to the right and slightly below the cursor
+    let x = evt.clientX + padding;
+    if (x + previewWidth + padding > window.innerWidth) {
+      x = evt.clientX - previewWidth - padding;
+      if (x < padding) x = padding;
+    }
+
+    let y = evt.clientY + padding;
+    if (y + previewHeight + padding > window.innerHeight) {
+      y = evt.clientY - previewHeight - padding;
+      if (y < padding) y = padding;
+    }
+
+    this.previewX = Math.round(x);
+    this.previewY = Math.round(y);
+  }
+
+  hidePreview(): void {
+    this.previewVisible = false;
+    this.previewSrc = null;
   }
 }
