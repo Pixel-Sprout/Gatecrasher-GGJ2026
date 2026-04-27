@@ -12,7 +12,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        string[] allowedOrigins = new string[] { "http://localhost:4200", "https://gatecrasher.mufinek.pl", "https://maska.mufinek.pl" };
+        string[] allowedOrigins = new string[] { "http://localhost:4200", "https://gatecrasher.mufinek.pl", "https://maska.mufinek.pl", "https://gatecrasher.duckdns.org" };
         foreach(var domain in allowedOrigins)
         policy.WithOrigins(domain)
               .AllowAnyHeader()

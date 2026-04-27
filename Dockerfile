@@ -12,7 +12,9 @@ WORKDIR /src/ui
 COPY Masquerade-UI/package*.json ./
 RUN npm install
 COPY Masquerade-UI/ ./
-RUN npm run build --omit=dev
+# Build unminified dev bundle so JS is easier to debug on another device
+# Pass `-- --configuration development` to forward the flag to the npm script
+RUN npm run build -- --configuration development
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
