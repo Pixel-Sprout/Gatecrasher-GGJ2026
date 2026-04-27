@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "Masquerade-Client": {
+    "Masquerade-UI": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
