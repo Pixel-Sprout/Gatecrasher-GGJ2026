@@ -14,6 +14,7 @@ interface ScoringPlayer {
   guessedRight: boolean;
   isEvil: boolean;
   imageData: string;
+  votedOn?: string; // name of the player this one voted for
 }
 
 @Component({
@@ -61,7 +62,8 @@ export class ScoringComponent implements OnInit {
       isReady: !!p.player.isReady,
       guessedRight: p.votedPlayerId === evilPlayerId,
       isEvil: !!p.isEvil,
-      imageData: p.encodedMask
+      imageData: p.encodedMask,
+      votedOn: p.votedPlayerId ? this.appState.scoringMessageSignal().players.find((pl : any) => pl.player.userId == p.votedPlayerId)?.player.username : null
     }));
     this.players.set(initialPlayers);
   }

@@ -13,15 +13,16 @@
       <h2>Scoreboard</h2>
       <ul class="score-list">
         @for (p of players(); track p.id) {
-        <li  class="score-item">
-          <div class="player-left">
-            <div class="player-avatar" (mouseenter)="showPreview($event, p.imageData)" (mousemove)="movePreview($event)" (mouseleave)="hidePreview()">
-              <img [src]="p.imageData" alt="{{ p.name }} avatar" />
-            </div>
-            <div class="player-meta">
-              <div class="player-name">{{ p.name }}</div>
-              <div class="player-role" [class.admin]="p.role === 'Admin'">{{ p.role }}</div>
-            </div>
+          <li  class="score-item">
+            <div class="player-left">
+              <div class="player-avatar" (mouseenter)="showPreview($event, p.imageData)" (mousemove)="movePreview($event)" (mouseleave)="hidePreview()">
+                <img [src]="p.imageData" alt="{{ p.name }} avatar" />
+              </div>
+              <div class="player-meta">
+                <div class="player-name">{{ p.name }}</div>
+                <div class="player-role" [class.admin]="p.role === 'Admin'"><span>{{ p.role }}</span></div>
+              </div>
+              <div *ngIf="p.votedOn" class="player-voted-on">Voted on {{ p.votedOn }}'s drawing</div>
             </div>
 
             <div *ngIf="previewVisible" class="cursor-avatar-preview" [style.left.px]="previewX" [style.top.px]="previewY">
