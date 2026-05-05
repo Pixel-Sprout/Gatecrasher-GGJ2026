@@ -40,6 +40,15 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
   remainingSeconds = signal<number>(0);
   deadlineProgress = signal<number>(0);
   private timerInterval: any = null;
+  
+  // Undo stack: store ImageData snapshots for undo
+  private undoStack: ImageData[] = [];
+  private readonly maxUndo: number = 30;
+
+  // Expose availability to template
+  public get undoAvailable(): boolean {
+    return this.undoStack.length > 0;
+  }
 
   private canvas!: HTMLCanvasElement;
   private context!: CanvasRenderingContext2D;
@@ -193,6 +202,43 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
     this.canvasHasDrawing = false;
   }
 
+  // Push a full-pixel snapshot of the current canvas onto the undo stack
+  private pushSnapshot(): void {
+    if (!this.context || !this.canvas) return;
+    try {
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+      const snapshot = this.context.getImageData(0, 0, w, h);
+      this.undoStack.push(snapshot);
+      if (this.undoStack.length > this.maxUndo) {
+        this.undoStack.shift();
+      }
+    } catch (e) {
+      console.warn('pushSnapshot failed', e);
+    }
+  }
+
+  // Return true if the provided ImageData has no non-transparent pixels
+  private isImageDataBlank(img: ImageData): boolean {
+    const data = img.data;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] !== 0) return false;
+    }
+    return true;
+  }
+
+  // Undo the last canvas-modifying action
+  undo(): void {
+    if (!this.context || !this.canvas) return;
+    if (this.undoStack.length === 0) return;
+    const last = this.undoStack.pop()!;
+    this.context.putImageData(last, 0, 0);
+    const blank = this.isImageDataBlank(last);
+    this.canvasHasDrawing = !blank;
+    this.showInstructions = blank;
+    this.updateBrushPreview();
+  }
+
   touchStart(event: TouchEvent): void {
     if (this.currentTool === DrawingTools.Fill) {
       event.preventDefault();
@@ -234,6 +280,8 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
 
   _startDrawing(clientX:number, clientY: number){
     if (!this.canvas) return;
+    // snapshot for undo
+    this.pushSnapshot();
 
     // Hide instructions when user starts drawing
     this.showInstructions = false;
@@ -290,6 +338,8 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
     // Convert brushColor to RGBA bytes for fill
     const rgba = this.hexToRgba(this.brushColor);
     if (!rgba) return;
+    // snapshot for undo
+    this.pushSnapshot();
 
     this.floodFill(px, py, rgba.r, rgba.g, rgba.b, rgba.a);
     this.canvasHasDrawing = true;
@@ -399,6 +449,9 @@ export class MaskCreatorComponent implements AfterViewInit, OnDestroy {
 
   clearCanvas(): void {
     if (!this.context) return;
+    // snapshot for undo
+    this.pushSnapshot();
+
     // Clear only the drawing canvas (leave background canvas intact)
     const w = this.cssWidth || this.canvas.width;
     const h = this.cssHeight || this.canvas.height;

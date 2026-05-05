@@ -132,12 +132,21 @@
         
 
         <div class="tool-group">
-          <button
-            class="btn btn-clear"
-            (click)="clearCanvas()"
-            [disabled]="!canvasHasDrawing">
-            Clear Canvas
-          </button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button
+              class="btn btn-undo"
+              (click)="undo()"
+              [disabled]="!undoAvailable"
+              aria-label="Undo last action">
+              Undo
+            </button>
+            <button
+              class="btn btn-clear"
+              (click)="clearCanvas()"
+              [disabled]="!canvasHasDrawing">
+              Clear Canvas
+            </button>
+          </div>
         </div>
       </div>
     </div>
