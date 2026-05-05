@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Masquerade-Client:build:production"
+              "buildTarget": "Masquerade-UI:build:production"
             },
             "development": {
-              "buildTarget": "Masquerade-Client:build:development"
+              "buildTarget": "Masquerade-UI:build:development"
             }
           },
           "defaultConfiguration": "development"

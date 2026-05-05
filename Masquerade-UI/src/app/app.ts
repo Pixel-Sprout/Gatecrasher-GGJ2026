@@ -30,7 +30,7 @@ import {UserSelectComponent} from './user-select/user-select.component';
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('Masquerade-Client');
+  protected readonly title = signal('Masquerade-UI');
   protected readonly appState = inject(AppStateService);
   protected readonly GameState = GameState;
 }
